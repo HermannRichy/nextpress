@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     authors: [{ name: "NextPress" }],
     creator: "NextPress",
     metadataBase: new URL(
-        process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+        process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
     ),
     openGraph: {
         type: "website",
@@ -55,11 +56,12 @@ export default function RootLayout({
             <body>
                 <ThemeProvider
                     attribute="class"
-                    defaultTheme="light"
+                    defaultTheme="system"
                     enableSystem
                     disableTransitionOnChange
                 >
                     {children}
+                    <Toaster position="top-center" />
                 </ThemeProvider>
             </body>
         </html>
