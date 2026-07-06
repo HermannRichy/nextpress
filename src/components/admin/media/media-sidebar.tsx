@@ -50,7 +50,7 @@ export function buildCloudinaryUrl(
     publicId: string,
     cloudName: string,
     type: "IMAGE" | "VIDEO",
-    transform: string
+    transform: string,
 ): string {
     const resourceType = type === "VIDEO" ? "video" : "image";
     const ext = type === "VIDEO" ? ".jpg" : "";
@@ -78,13 +78,24 @@ function CopyButton({ url, label }: { url: string; label: string }) {
 
     return (
         <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground flex-1 capitalize">{label}</span>
-            <code className="text-xs text-muted-foreground/70 truncate max-w-[120px] hidden sm:block">…/{label}</code>
-            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={copy} aria-label={`Copier URL ${label}`}>
-                {copied
-                    ? <IconCheck size={13} className="text-green-500" />
-                    : <IconCopy size={13} />
-                }
+            <span className="text-xs text-muted-foreground flex-1 capitalize">
+                {label}
+            </span>
+            <code className="text-xs text-muted-foreground/70 truncate max-w-30 hidden sm:block">
+                …/{label}
+            </code>
+            <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 shrink-0"
+                onClick={copy}
+                aria-label={`Copier URL ${label}`}
+            >
+                {copied ? (
+                    <IconCheck size={13} className="text-green-500" />
+                ) : (
+                    <IconCopy size={13} />
+                )}
             </Button>
         </div>
     );
@@ -99,7 +110,12 @@ interface MediaSidebarProps {
     onDelete: (id: string) => void;
 }
 
-export function MediaSidebar({ media, cloudName, onClose, onDelete }: MediaSidebarProps) {
+export function MediaSidebar({
+    media,
+    cloudName,
+    onClose,
+    onDelete,
+}: MediaSidebarProps) {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [, startTransition] = useTransition();
 
@@ -121,7 +137,10 @@ export function MediaSidebar({ media, cloudName, onClose, onDelete }: MediaSideb
     return (
         <>
             <Sheet open={!!media} onOpenChange={(o) => !o && onClose()}>
-                <SheetContent side="right" className="w-80 overflow-y-auto flex flex-col gap-0 p-0">
+                <SheetContent
+                    side="right"
+                    className="w-80 overflow-y-auto flex flex-col gap-0 p-0"
+                >
                     {media && (
                         <>
                             <SheetHeader className="px-4 pt-4 pb-3 border-b border-border">
@@ -142,7 +161,12 @@ export function MediaSidebar({ media, cloudName, onClose, onDelete }: MediaSideb
                                     ) : (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img
-                                            src={buildCloudinaryUrl(media.publicId, cloudName, "IMAGE", "c_fit,w_600,h_600")}
+                                            src={buildCloudinaryUrl(
+                                                media.publicId,
+                                                cloudName,
+                                                "IMAGE",
+                                                "c_fit,w_600,h_600",
+                                            )}
                                             alt={media.name}
                                             className="w-full h-full object-contain"
                                         />
@@ -153,30 +177,46 @@ export function MediaSidebar({ media, cloudName, onClose, onDelete }: MediaSideb
                                 <dl className="space-y-1.5 text-sm">
                                     {media.format && (
                                         <div className="flex justify-between">
-                                            <dt className="text-muted-foreground">Format</dt>
-                                            <dd className="font-medium uppercase">{media.format}</dd>
+                                            <dt className="text-muted-foreground">
+                                                Format
+                                            </dt>
+                                            <dd className="font-medium uppercase">
+                                                {media.format}
+                                            </dd>
                                         </div>
                                     )}
                                     {media.size !== null && (
                                         <div className="flex justify-between">
-                                            <dt className="text-muted-foreground">Taille</dt>
-                                            <dd className="font-medium">{formatBytes(media.size)}</dd>
+                                            <dt className="text-muted-foreground">
+                                                Taille
+                                            </dt>
+                                            <dd className="font-medium">
+                                                {formatBytes(media.size)}
+                                            </dd>
                                         </div>
                                     )}
                                     {media.width && media.height && (
                                         <div className="flex justify-between">
-                                            <dt className="text-muted-foreground">Dimensions</dt>
-                                            <dd className="font-medium">{media.width} × {media.height}</dd>
+                                            <dt className="text-muted-foreground">
+                                                Dimensions
+                                            </dt>
+                                            <dd className="font-medium">
+                                                {media.width} × {media.height}
+                                            </dd>
                                         </div>
                                     )}
                                     <div className="flex justify-between">
-                                        <dt className="text-muted-foreground">Ajouté le</dt>
+                                        <dt className="text-muted-foreground">
+                                            Ajouté le
+                                        </dt>
                                         <dd className="font-medium">
                                             {new Intl.DateTimeFormat("fr-FR", {
                                                 day: "2-digit",
                                                 month: "short",
                                                 year: "numeric",
-                                            }).format(new Date(media.createdAt))}
+                                            }).format(
+                                                new Date(media.createdAt),
+                                            )}
                                         </dd>
                                     </div>
                                 </dl>
@@ -189,14 +229,24 @@ export function MediaSidebar({ media, cloudName, onClose, onDelete }: MediaSideb
                                         URLs
                                     </p>
                                     <div className="space-y-1.5">
-                                        {Object.entries(TRANSFORM_LABELS).map(([label, transform]) => (
-                                            <CopyButton
-                                                key={label}
-                                                label={label}
-                                                url={buildCloudinaryUrl(media.publicId, cloudName, media.type, transform)}
-                                            />
-                                        ))}
-                                        <CopyButton label="original" url={media.url} />
+                                        {Object.entries(TRANSFORM_LABELS).map(
+                                            ([label, transform]) => (
+                                                <CopyButton
+                                                    key={label}
+                                                    label={label}
+                                                    url={buildCloudinaryUrl(
+                                                        media.publicId,
+                                                        cloudName,
+                                                        media.type,
+                                                        transform,
+                                                    )}
+                                                />
+                                            ),
+                                        )}
+                                        <CopyButton
+                                            label="original"
+                                            url={media.url}
+                                        />
                                     </div>
                                 </aside>
 
@@ -220,9 +270,12 @@ export function MediaSidebar({ media, cloudName, onClose, onDelete }: MediaSideb
             <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Supprimer ce fichier ?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Supprimer ce fichier ?
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Le fichier sera supprimé définitivement de Cloudinary et de la base de données.
+                            Le fichier sera supprimé définitivement de
+                            Cloudinary et de la base de données.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
