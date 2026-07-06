@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { IconCopy, IconTrash, IconCheck } from "@tabler/icons-react";
+import { useEffect, useState, useTransition } from "react";
+import { IconCopy, IconTrash, IconCheck, IconCrop } from "@tabler/icons-react";
 import {
     Sheet,
     SheetContent,
@@ -22,46 +22,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { deleteMedia } from "@/app/(admin)/dashboard/media/actions";
+import { buildCloudinaryUrl, formatBytes, type MediaItem } from "./media-utils";
+import { ImageCropDialog } from "./image-crop-dialog";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Ré-exports de compatibilité pour les importeurs existants
+export { buildCloudinaryUrl } from "./media-utils";
+export type { MediaItem } from "./media-utils";
 
-export interface MediaItem {
-    id: string;
-    publicId: string;
-    url: string;
-    type: "IMAGE" | "VIDEO";
-    name: string;
-    size: number | null;
-    width: number | null;
-    height: number | null;
-    format: string | null;
-    createdAt: string;
-}
-
-// ─── Cloudinary URL helpers ───────────────────────────────────────────────────
+// ─── Transforms prédéfinis ────────────────────────────────────────────────────
 
 const TRANSFORM_LABELS: Record<string, string> = {
     thumbnail: "c_thumb,w_150,h_150",
     medium: "c_fit,w_600,h_600",
     large: "c_fit,w_1200,h_1200",
 };
-
-export function buildCloudinaryUrl(
-    publicId: string,
-    cloudName: string,
-    type: "IMAGE" | "VIDEO",
-    transform: string,
-): string {
-    const resourceType = type === "VIDEO" ? "video" : "image";
-    const ext = type === "VIDEO" ? ".jpg" : "";
-    return `https://res.cloudinary.com/${cloudName}/${resourceType}/upload/${transform}/${publicId}${ext}`;
-}
-
-function formatBytes(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 // ─── Copy button ──────────────────────────────────────────────────────────────
 
@@ -117,7 +91,14 @@ export function MediaSidebar({
     onDelete,
 }: MediaSidebarProps) {
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [cropOpen, setCropOpen] = useState(false);
+    const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
     const [, startTransition] = useTransition();
+
+    // L'URL recadrée est liée au média courant — on la vide quand il change
+    useEffect(() => {
+        setCroppedUrl(null);
+    }, [media?.id]);
 
     function handleDelete() {
         if (!media) return;
@@ -247,8 +228,26 @@ export function MediaSidebar({
                                             label="original"
                                             url={media.url}
                                         />
+                                        {croppedUrl && (
+                                            <CopyButton
+                                                label="recadrée"
+                                                url={croppedUrl}
+                                            />
+                                        )}
                                     </div>
                                 </aside>
+
+                                {media.type === "IMAGE" && cloudName && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full"
+                                        onClick={() => setCropOpen(true)}
+                                    >
+                                        <IconCrop size={14} className="mr-2" />
+                                        Recadrer / redimensionner
+                                    </Button>
+                                )}
 
                                 <Separator />
 
@@ -266,6 +265,21 @@ export function MediaSidebar({
                     )}
                 </SheetContent>
             </Sheet>
+
+            {media && media.type === "IMAGE" && cloudName && (
+                <ImageCropDialog
+                    media={media}
+                    cloudName={cloudName}
+                    open={cropOpen}
+                    onOpenChange={setCropOpen}
+                    onApply={(url) => {
+                        setCroppedUrl(url);
+                        navigator.clipboard.writeText(url).then(() => {
+                            toast.success("URL recadrée copiée");
+                        });
+                    }}
+                />
+            )}
 
             <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <AlertDialogContent>

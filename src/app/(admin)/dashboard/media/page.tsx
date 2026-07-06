@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { MediaType } from "@prisma/client";
 import { getMediaList, getCloudName } from "./actions";
 import { MediaGrid } from "@/components/admin/media/media-grid";
-import type { MediaItem } from "@/components/admin/media/media-sidebar";
+import type { MediaItem } from "@/components/admin/media/media-utils";
 
 export const metadata: Metadata = { title: "Médiathèque" };
 

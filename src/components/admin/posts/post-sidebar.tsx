@@ -30,6 +30,7 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
+import { MediaInput } from "@/components/admin/media/media-input";
 import { SeoScore } from "./seo-score";
 import type { PostFormValues } from "./post-editor";
 
@@ -101,20 +102,12 @@ export function PostSidebar({ categories, tags }: PostSidebarProps) {
                 <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Image à la une
                 </Label>
-                <Input
-                    {...register("featuredImage")}
-                    placeholder="https://..."
-                    className="text-sm"
+                <MediaInput
+                    value={featuredImage}
+                    onChange={(url) => setValue("featuredImage", url, { shouldDirty: true })}
+                    accept="image"
+                    previewAspectClass="aspect-video"
                 />
-                {featuredImage && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                        src={featuredImage}
-                        alt="Aperçu image à la une"
-                        className="w-full rounded-md object-cover aspect-video border border-border"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                )}
             </section>
 
             <Separator />

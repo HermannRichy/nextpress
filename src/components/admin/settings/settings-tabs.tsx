@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { updateSiteSettings } from "@/app/(admin)/dashboard/settings/actions";
+import { MediaInput } from "@/components/admin/media/media-input";
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -115,7 +116,7 @@ const generalSchema = z.object({
 type GeneralValues = z.infer<typeof generalSchema>;
 
 function TabGeneral({ s }: { s: SiteSettings }) {
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<GeneralValues>({
+    const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<GeneralValues>({
         resolver: zodResolver(generalSchema),
         defaultValues: {
             siteName: s.siteName,
@@ -159,10 +160,22 @@ function TabGeneral({ s }: { s: SiteSettings }) {
                 <Input id="siteSlogan" {...register("siteSlogan")} />
             </FieldRow>
             <FieldRow id="logoUrl" label="URL du logo" hint="URL externe ou Cloudinary" error={errors.logoUrl?.message}>
-                <Input id="logoUrl" placeholder="https://…" {...register("logoUrl")} />
+                <MediaInput
+                    id="logoUrl"
+                    value={watch("logoUrl") ?? ""}
+                    onChange={(url) => setValue("logoUrl", url, { shouldDirty: true, shouldValidate: true })}
+                    accept="image"
+                    previewAspectClass="aspect-video"
+                />
             </FieldRow>
             <FieldRow id="faviconUrl" label="URL du favicon" error={errors.faviconUrl?.message}>
-                <Input id="faviconUrl" placeholder="https://…" {...register("faviconUrl")} />
+                <MediaInput
+                    id="faviconUrl"
+                    value={watch("faviconUrl") ?? ""}
+                    onChange={(url) => setValue("faviconUrl", url, { shouldDirty: true, shouldValidate: true })}
+                    accept="image"
+                    previewAspectClass="aspect-square"
+                />
             </FieldRow>
             <Separator />
             <FieldRow id="contactEmail" label="Email de contact" error={errors.contactEmail?.message}>

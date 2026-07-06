@@ -102,6 +102,39 @@ export async function uploadMedia(formData: FormData): Promise<void> {
     revalidatePath("/dashboard/media");
 }
 
+// ─── Save cropped version ─────────────────────────────────────────────────────
+
+export async function saveCroppedMedia(
+    publicId: string,
+    transform: string,
+    name: string,
+): Promise<void> {
+    await requireAdmin();
+    const cloudName = await configureCloudinary();
+
+    const sourceUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${transform}/${publicId}`;
+
+    const result = await cloudinary.uploader.upload(sourceUrl, {
+        folder: "nextpress",
+        resource_type: "image",
+    });
+
+    await prisma.media.create({
+        data: {
+            publicId: result.public_id,
+            url: result.secure_url,
+            type: "IMAGE",
+            name: `${name} (recadrée)`,
+            size: result.bytes ?? null,
+            width: result.width ?? null,
+            height: result.height ?? null,
+            format: result.format ?? null,
+        },
+    });
+
+    revalidatePath("/dashboard/media");
+}
+
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 export async function deleteMedia(id: string): Promise<void> {

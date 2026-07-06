@@ -21,7 +21,9 @@ import {
     IconQuote,
     IconLink,
     IconPhoto,
+    IconLibraryPhoto,
 } from "@tabler/icons-react";
+import { MediaPickerDialog } from "@/components/admin/media/media-picker-dialog";
 
 interface RichTextProps {
     defaultValue?: string;
@@ -33,6 +35,7 @@ export function RichText({ defaultValue = "", onChange }: RichTextProps) {
     const [linkUrl, setLinkUrl] = useState("");
     const [imageOpen, setImageOpen] = useState(false);
     const [imageUrl, setImageUrl] = useState("");
+    const [pickerOpen, setPickerOpen] = useState(false);
 
     const editor = useEditor({
         extensions: [
@@ -162,8 +165,21 @@ export function RichText({ defaultValue = "", onChange }: RichTextProps) {
                             <IconPhoto size={14} />
                         </Toggle>
                     </PopoverTrigger>
-                    <PopoverContent className="w-72 p-3" align="start">
-                        <p className="text-xs font-medium mb-2">URL de l&apos;image</p>
+                    <PopoverContent className="w-72 p-3 space-y-2" align="start">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                                setImageOpen(false);
+                                setPickerOpen(true);
+                            }}
+                        >
+                            <IconLibraryPhoto size={14} className="mr-1.5" />
+                            Choisir dans la médiathèque
+                        </Button>
+                        <p className="text-xs font-medium">URL de l&apos;image</p>
                         <div className="flex gap-2">
                             <Input
                                 value={imageUrl}
@@ -177,6 +193,16 @@ export function RichText({ defaultValue = "", onChange }: RichTextProps) {
                     </PopoverContent>
                 </Popover>
             </div>
+
+            <MediaPickerDialog
+                open={pickerOpen}
+                onOpenChange={setPickerOpen}
+                onSelect={(url, item) => {
+                    editor?.chain().focus().setImage({ src: url, alt: item.name }).run();
+                    setPickerOpen(false);
+                }}
+                accept="image"
+            />
 
             {/* Editor area */}
             <EditorContent

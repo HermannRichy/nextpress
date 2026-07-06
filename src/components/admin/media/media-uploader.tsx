@@ -8,7 +8,12 @@ import { uploadMedia } from "@/app/(admin)/dashboard/media/actions";
 
 const MAX_SIZE = 20 * 1024 * 1024;
 
-export function MediaUploader() {
+interface MediaUploaderProps {
+    onUploaded?: () => void;
+    compact?: boolean;
+}
+
+export function MediaUploader({ onUploaded, compact = false }: MediaUploaderProps) {
     const router = useRouter();
     const inputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -43,6 +48,7 @@ export function MediaUploader() {
         }
         setUploading(false);
         router.refresh();
+        onUploaded?.();
     }
 
     function onDrop(e: React.DragEvent) {
@@ -53,7 +59,7 @@ export function MediaUploader() {
 
     return (
         <div
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+            className={`border-2 border-dashed rounded-xl ${compact ? "p-5" : "p-8"} text-center transition-colors ${
                 isDragging
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-primary/40 hover:bg-muted/30"
