@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import Link from "next/link";
-import { IconDeviceFloppy, IconSend, IconArrowLeft } from "@tabler/icons-react";
+import { IconDeviceFloppy, IconSend, IconArrowLeft, IconLoader2 } from "@tabler/icons-react";
 import type { PostStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,7 @@ interface PostEditorProps {
 export function PostEditor({ post, categories, tags }: PostEditorProps) {
     const router = useRouter();
     const [pending, startTransition] = useTransition();
+    const [action, setAction] = useState<"save" | "publish" | null>(null);
     const slugEdited = useRef(false);
 
     const form = useForm<PostFormValues>({
@@ -102,6 +103,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
     }
 
     function onSubmit(values: PostFormValues) {
+        setAction("save");
         startTransition(async () => {
             try { await save(values); } catch { toast.error("Une erreur est survenue"); }
         });
@@ -109,6 +111,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
 
     function onPublish() {
         handleSubmit((values) => {
+            setAction("publish");
             startTransition(async () => {
                 try { await save(values, true); } catch { toast.error("Une erreur est survenue"); }
             });
@@ -132,11 +135,19 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
                     </div>
                     <div className="flex items-center gap-2">
                         <Button type="submit" variant="outline" size="sm" disabled={pending}>
-                            <IconDeviceFloppy size={15} className="mr-1.5" />
+                            {pending && action === "save" ? (
+                                <IconLoader2 size={15} className="mr-1.5 animate-spin" />
+                            ) : (
+                                <IconDeviceFloppy size={15} className="mr-1.5" />
+                            )}
                             Enregistrer
                         </Button>
                         <Button type="button" size="sm" disabled={pending} onClick={onPublish}>
-                            <IconSend size={15} className="mr-1.5" />
+                            {pending && action === "publish" ? (
+                                <IconLoader2 size={15} className="mr-1.5 animate-spin" />
+                            ) : (
+                                <IconSend size={15} className="mr-1.5" />
+                            )}
                             Publier
                         </Button>
                     </div>

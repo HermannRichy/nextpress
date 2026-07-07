@@ -10,6 +10,7 @@ import {
     IconClockHour4,
     IconCircleCheck,
     IconFileText,
+    IconLoader2,
 } from "@tabler/icons-react";
 import type { PostStatus } from "@prisma/client";
 import {
@@ -78,7 +79,7 @@ interface PostsTableProps {
 }
 
 export function PostsTable({ posts }: PostsTableProps) {
-    const [, startTransition] = useTransition();
+    const [pending, startTransition] = useTransition();
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
     function handleStatusChange(id: string, status: PostStatus) {
@@ -199,6 +200,7 @@ export function PostsTable({ posts }: PostsTableProps) {
                                             {nextStatuses.map(({ status, label }) => (
                                                 <DropdownMenuItem
                                                     key={status}
+                                                    disabled={pending}
                                                     onSelect={() => handleStatusChange(post.id, status)}
                                                 >
                                                     {label}
@@ -232,9 +234,15 @@ export function PostsTable({ posts }: PostsTableProps) {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Annuler</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={handleDelete}
+                            onClick={(e) => {
+                                // Garde le dialog ouvert pendant la suppression (spinner visible)
+                                e.preventDefault();
+                                handleDelete();
+                            }}
+                            disabled={pending}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
+                            {pending && <IconLoader2 size={14} className="mr-1.5 animate-spin" />}
                             Supprimer
                         </AlertDialogAction>
                     </AlertDialogFooter>

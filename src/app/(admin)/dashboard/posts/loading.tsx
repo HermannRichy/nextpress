@@ -1,5 +1,5 @@
-import { PageLoader } from "@/components/admin/dashboard/page-loader";
+import { PostsLoader } from "@/components/admin/dashboard/page-loader";
 
 export default function Loading() {
-    return <PageLoader />;
+    return <PostsLoader />;
 }

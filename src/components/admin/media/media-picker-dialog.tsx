@@ -87,13 +87,20 @@ export function MediaPickerDialog({
         }
     }
 
-    useEffect(() => {
+    // Reset de l'état à l'ouverture (ajustement pendant le render)
+    const [prevOpen, setPrevOpen] = useState(open);
+    if (open !== prevOpen) {
+        setPrevOpen(open);
         if (open) {
             setSelected(null);
             setSearch("");
             setTab("library");
-            fetchMedia();
         }
+    }
+
+    // Le fetch reste dans un effect (synchronisation avec un système externe)
+    useEffect(() => {
+        if (open) fetchMedia();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open]);
 
@@ -241,6 +248,7 @@ export function MediaPickerDialog({
                         setCropOpen(false);
                         onOpenChange(false);
                     }}
+                    onSaved={fetchMedia}
                 />
             )}
         </>

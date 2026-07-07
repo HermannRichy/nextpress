@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { IconCopy, IconTrash, IconCheck, IconCrop } from "@tabler/icons-react";
+import { useState, useTransition } from "react";
+import { IconCopy, IconTrash, IconCheck, IconCrop, IconLoader2 } from "@tabler/icons-react";
 import {
     Sheet,
     SheetContent,
@@ -93,12 +93,14 @@ export function MediaSidebar({
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [cropOpen, setCropOpen] = useState(false);
     const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
-    const [, startTransition] = useTransition();
+    const [pending, startTransition] = useTransition();
 
     // L'URL recadrée est liée au média courant — on la vide quand il change
-    useEffect(() => {
+    const [prevMediaId, setPrevMediaId] = useState(media?.id);
+    if (media?.id !== prevMediaId) {
+        setPrevMediaId(media?.id);
         setCroppedUrl(null);
-    }, [media?.id]);
+    }
 
     function handleDelete() {
         if (!media) return;
@@ -295,9 +297,15 @@ export function MediaSidebar({
                     <AlertDialogFooter>
                         <AlertDialogCancel>Annuler</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={handleDelete}
+                            onClick={(e) => {
+                                // Garde le dialog ouvert pendant la suppression (spinner visible)
+                                e.preventDefault();
+                                handleDelete();
+                            }}
+                            disabled={pending}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
+                            {pending && <IconLoader2 size={14} className="mr-1.5 animate-spin" />}
                             Supprimer
                         </AlertDialogAction>
                     </AlertDialogFooter>

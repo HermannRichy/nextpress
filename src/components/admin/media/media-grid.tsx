@@ -35,6 +35,14 @@ export function MediaGrid({ media: initialMedia, cloudName }: MediaGridProps) {
     const [selected, setSelected] = useState<MediaItem | null>(null);
     const [media, setMedia] = useState(initialMedia);
 
+    // Resynchronise avec le serveur après revalidatePath / router.refresh
+    // (upload, crop enregistré…) — ajustement pendant le render, pas d'effect
+    const [prevInitial, setPrevInitial] = useState(initialMedia);
+    if (prevInitial !== initialMedia) {
+        setPrevInitial(initialMedia);
+        setMedia(initialMedia);
+    }
+
     const typeFilter = searchParams.get("type") ?? "";
     const dateFilter = searchParams.get("date") ?? "";
 

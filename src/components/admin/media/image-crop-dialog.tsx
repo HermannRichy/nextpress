@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import Cropper, { type Area } from "react-easy-crop";
-import { IconDeviceFloppy, IconCheck } from "@tabler/icons-react";
+import { IconDeviceFloppy, IconCheck, IconLoader2 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import {
     Dialog,
@@ -57,6 +57,7 @@ interface ImageCropDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onApply: (url: string) => void;
+    onSaved?: () => void;
 }
 
 export function ImageCropDialog({
@@ -65,6 +66,7 @@ export function ImageCropDialog({
     open,
     onOpenChange,
     onApply,
+    onSaved,
 }: ImageCropDialogProps) {
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
@@ -74,8 +76,11 @@ export function ImageCropDialog({
     const [naturalWidth, setNaturalWidth] = useState<number | null>(null);
     const [saving, startSaving] = useTransition();
 
-    // Réinitialise l'état à chaque ouverture
-    useEffect(() => {
+    // Réinitialise l'état à chaque ouverture (ajustement pendant le render,
+    // cf. react.dev "adjusting state when a prop changes")
+    const [prevOpen, setPrevOpen] = useState(open);
+    if (open !== prevOpen) {
+        setPrevOpen(open);
         if (open) {
             setCrop({ x: 0, y: 0 });
             setZoom(1);
@@ -83,7 +88,7 @@ export function ImageCropDialog({
             setOutputSize("original");
             setAreaPixels(null);
         }
-    }, [open, media.id]);
+    }
 
     // Aperçu allégé si les dimensions originales sont connues, sinon l'original
     // (garantit un mapping exact des pixels quand width est null)
@@ -134,6 +139,7 @@ export function ImageCropDialog({
             try {
                 await saveCroppedMedia(media.publicId, transform, media.name);
                 toast.success("Version recadrée enregistrée dans la médiathèque");
+                onSaved?.();
                 onOpenChange(false);
             } catch {
                 toast.error("Erreur lors de l'enregistrement");
@@ -240,7 +246,11 @@ export function ImageCropDialog({
                         disabled={!areaPixels || saving}
                         onClick={handleSaveToLibrary}
                     >
-                        <IconDeviceFloppy size={14} className="mr-1.5" />
+                        {saving ? (
+                            <IconLoader2 size={14} className="mr-1.5 animate-spin" />
+                        ) : (
+                            <IconDeviceFloppy size={14} className="mr-1.5" />
+                        )}
                         Enregistrer dans la médiathèque
                     </Button>
                     <Button
