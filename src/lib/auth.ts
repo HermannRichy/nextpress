@@ -16,6 +16,17 @@ export const auth = betterAuth({
         requireEmailVerification: true,
     },
 
+    session: {
+        // Évite une requête SQL à chaque getSession() côté serveur : la session
+        // est relue depuis un cookie signé pendant maxAge.
+        // Contrepartie : une session révoquée ou un rôle modifié peuvent rester
+        // actifs jusqu'à 5 minutes sur les autres appareils.
+        cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60,
+        },
+    },
+
     plugins: [
         emailOTP({
             otpLength: 6,

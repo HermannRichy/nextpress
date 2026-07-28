@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
 const AUTH_ROUTES = ["/login", "/signup", "/forgot-password", "/reset-password", "/verify-email"];
 const PROTECTED_ROUTES = ["/dashboard", "/account"];
@@ -13,16 +14,20 @@ function isProtectedRoute(path: string) {
 }
 
 function roleRedirect(role: string): string {
-    if (role === "ADMIN" || role === "EDITOR") return "/dashboard";
-    return "/account";
+    // Redirection optimiste uniquement : le layout admin revalide la session et
+    // le rôle côté serveur, et renvoie les non-admins vers "/".
+    // Sans rôle connu, on vise /dashboard — /account n'existe pas encore.
+    if (role === "CLIENT") return "/";
+    return "/dashboard";
 }
 
 export async function proxy(req: NextRequest) {
     const path = req.nextUrl.pathname;
 
     // Optimistic check: read session cookie (no DB call — per Next.js proxy best practices)
-    const sessionToken = req.cookies.get("better-auth.session_token")?.value;
-    const isAuthenticated = !!sessionToken;
+    // getSessionCookie gère le préfixe "__Secure-" que better-auth ajoute en HTTPS :
+    // le lire en dur échouerait systématiquement en production.
+    const isAuthenticated = !!getSessionCookie(req);
 
     // Role cookie set by the app after sign-in for optimistic redirects
     const role = req.cookies.get("np-role")?.value ?? "";
