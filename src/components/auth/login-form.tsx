@@ -54,8 +54,15 @@ export function LoginForm() {
 
             if (error) {
                 if (error.code === "EMAIL_NOT_VERIFIED") {
+                    // Le sign-in n'envoie pas de code de lui-même (sendOnSignIn
+                    // n'est pas activé) : on le demande ici pour que le code soit
+                    // frais — il n'est valable que 5 minutes.
+                    await authClient.emailOtp.sendVerificationOtp({
+                        email: values.email,
+                        type: "email-verification",
+                    });
                     toast.info(
-                        "Votre email n'est pas encore vérifié. Nous vous envoyons un nouveau code.",
+                        "Votre email n'est pas encore vérifié. Nous vous envoyons un code.",
                     );
                     router.push(
                         `/verify-email?email=${encodeURIComponent(values.email)}`,
