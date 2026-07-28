@@ -69,8 +69,11 @@ export function LoginForm() {
             }
 
             toast.success("Connexion réussie ! Redirection en cours…");
-            router.push(callbackUrl);
-            router.refresh();
+            // Navigation « dure » volontaire : le Router Cache de Next peut avoir
+            // mémorisé la redirection vers /login émise par le layout admin quand
+            // la session n'existait pas encore. Un rechargement complet renvoie la
+            // requête au serveur avec le cookie de session fraîchement posé.
+            window.location.assign(callbackUrl);
         } catch (err) {
             const message = getThrownErrorMessage(err);
             setServerError(message);

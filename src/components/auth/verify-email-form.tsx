@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +18,6 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function VerifyEmailForm() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const email = searchParams.get("email") ?? "";
 
@@ -55,8 +54,8 @@ export function VerifyEmailForm() {
             }
 
             toast.success("Email vérifié ! Bienvenue sur NextPress.");
-            router.push("/dashboard");
-            router.refresh();
+            // Navigation « dure » : voir le commentaire dans login-form.tsx.
+            window.location.assign("/dashboard");
         } catch (err) {
             const message = getThrownErrorMessage(err);
             setServerError(message);

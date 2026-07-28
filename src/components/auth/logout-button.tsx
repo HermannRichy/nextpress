@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { IconLogout, IconLoader2 } from "@tabler/icons-react";
 import {
     AlertDialog,
@@ -26,7 +25,6 @@ interface LogoutButtonProps {
 }
 
 export function LogoutButton({ variant = "ghost", size = "default", className }: LogoutButtonProps) {
-    const router = useRouter();
     const [loading, setLoading] = useState(false);
 
     const handleLogout = async () => {
@@ -34,8 +32,9 @@ export function LogoutButton({ variant = "ghost", size = "default", className }:
         try {
             await authClient.signOut();
             toast.success("Vous êtes déconnecté. À bientôt !");
-            router.push("/login");
-            router.refresh();
+            // Rechargement complet : vide le Router Cache, sinon les pages du
+            // dashboard déjà visitées restent réaffichables après déconnexion.
+            window.location.assign("/login");
         } catch (err) {
             toast.error(getThrownErrorMessage(err));
             setLoading(false);
