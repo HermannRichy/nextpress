@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { authClient } from "@/lib/auth-client";
+import { getAuthErrorMessage, getThrownErrorMessage } from "@/lib/auth-errors";
 import { toast } from "sonner";
 
 const schema = z
@@ -47,21 +48,31 @@ export function ResetPasswordForm() {
 
     const onSubmit = async (values: FormValues) => {
         setServerError(null);
-        const { error } = await authClient.emailOtp.resetPassword({
-            email,
-            otp: values.otp,
-            password: values.password,
-        });
 
-        if (error) {
-            setServerError(error.message ?? "Code invalide ou expiré.");
-            toast.error(error.message ?? "Code invalide ou expiré.");
-            return;
+        try {
+            const { error } = await authClient.emailOtp.resetPassword({
+                email,
+                otp: values.otp,
+                password: values.password,
+            });
+
+            if (error) {
+                const message = getAuthErrorMessage(error);
+                setServerError(message);
+                toast.error(message);
+                return;
+            }
+
+            toast.success(
+                "Mot de passe réinitialisé ! Vous pouvez vous reconnecter.",
+            );
+            setSuccess(true);
+            setTimeout(() => router.push("/login"), 2000);
+        } catch (err) {
+            const message = getThrownErrorMessage(err);
+            setServerError(message);
+            toast.error(message);
         }
-
-        toast.success("Mot de passe réinitialisé avec succès !");
-        setSuccess(true);
-        setTimeout(() => router.push("/login"), 2000);
     };
 
     if (success) {

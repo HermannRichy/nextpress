@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { getAuthErrorMessage, getThrownErrorMessage } from "@/lib/auth-errors";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -44,25 +45,37 @@ export function LoginForm() {
 
     const onSubmit = async (values: FormValues) => {
         setServerError(null);
-        const { error } = await authClient.signIn.email({
-            email: values.email,
-            password: values.password,
-        });
 
-        if (error) {
-            if (error.code === "EMAIL_NOT_VERIFIED") {
-                router.push(
-                    `/verify-email?email=${encodeURIComponent(values.email)}`,
-                );
+        try {
+            const { error } = await authClient.signIn.email({
+                email: values.email,
+                password: values.password,
+            });
+
+            if (error) {
+                if (error.code === "EMAIL_NOT_VERIFIED") {
+                    toast.info(
+                        "Votre email n'est pas encore vérifié. Nous vous envoyons un nouveau code.",
+                    );
+                    router.push(
+                        `/verify-email?email=${encodeURIComponent(values.email)}`,
+                    );
+                    return;
+                }
+                const message = getAuthErrorMessage(error);
+                setServerError(message);
+                toast.error(message);
                 return;
             }
-            setServerError(error.message ?? "Identifiants incorrects.");
-            toast.error(error.message ?? "Identifiants incorrects.");
-            return;
-        }
 
-        router.push(callbackUrl);
-        router.refresh();
+            toast.success("Connexion réussie ! Redirection en cours…");
+            router.push(callbackUrl);
+            router.refresh();
+        } catch (err) {
+            const message = getThrownErrorMessage(err);
+            setServerError(message);
+            toast.error(message);
+        }
     };
 
     return (

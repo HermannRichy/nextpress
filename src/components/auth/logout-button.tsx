@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { getThrownErrorMessage } from "@/lib/auth-errors";
+import { toast } from "sonner";
 
 interface LogoutButtonProps {
     variant?: "default" | "ghost" | "outline" | "destructive";
@@ -29,9 +31,15 @@ export function LogoutButton({ variant = "ghost", size = "default", className }:
 
     const handleLogout = async () => {
         setLoading(true);
-        await authClient.signOut();
-        router.push("/login");
-        router.refresh();
+        try {
+            await authClient.signOut();
+            toast.success("Vous êtes déconnecté. À bientôt !");
+            router.push("/login");
+            router.refresh();
+        } catch (err) {
+            toast.error(getThrownErrorMessage(err));
+            setLoading(false);
+        }
     };
 
     return (

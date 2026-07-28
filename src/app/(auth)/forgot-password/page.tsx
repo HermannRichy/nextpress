@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { getAuthErrorMessage, getThrownErrorMessage } from "@/lib/auth-errors";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -28,14 +29,35 @@ export default function ForgotPasswordPage() {
 
     const onSubmit = async (values: FormValues) => {
         setServerError(null);
-        // Toujours naviguer vers reset-password, quelle que soit l'existence du compte
-        // Évite l'énumération d'emails : l'utilisateur reçoit le code uniquement si le compte existe
-        await authClient.emailOtp.sendVerificationOtp({
-            email: values.email,
-            type: "forget-password",
-        });
-        toast.success("Si un compte existe avec cet email, vous recevrez un code.");
-        router.push(`/reset-password?email=${encodeURIComponent(values.email)}`);
+
+        try {
+            // Toujours naviguer vers reset-password, quelle que soit l'existence du compte
+            // Évite l'énumération d'emails : l'utilisateur reçoit le code uniquement si le compte existe
+            const { error } = await authClient.emailOtp.sendVerificationOtp({
+                email: values.email,
+                type: "forget-password",
+            });
+
+            // On ne remonte que les pannes d'infrastructure : afficher une erreur
+            // liée au compte (introuvable, etc.) révélerait quels emails existent.
+            if (error && (error.status === 429 || (error.status ?? 0) >= 500)) {
+                const message = getAuthErrorMessage(error);
+                setServerError(message);
+                toast.error(message);
+                return;
+            }
+
+            toast.success(
+                "Si un compte existe avec cet email, vous recevrez un code à 6 chiffres.",
+            );
+            router.push(
+                `/reset-password?email=${encodeURIComponent(values.email)}`,
+            );
+        } catch (err) {
+            const message = getThrownErrorMessage(err);
+            setServerError(message);
+            toast.error(message);
+        }
     };
 
     return (

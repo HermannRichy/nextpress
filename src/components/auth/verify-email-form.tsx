@@ -9,6 +9,7 @@ import { IconLoader2, IconMailCheck, IconRefresh } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { authClient } from "@/lib/auth-client";
+import { getAuthErrorMessage, getThrownErrorMessage } from "@/lib/auth-errors";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -39,30 +40,56 @@ export function VerifyEmailForm() {
 
     const onSubmit = async (values: FormValues) => {
         setServerError(null);
-        const { error } = await authClient.emailOtp.verifyEmail({
-            email,
-            otp: values.otp,
-        });
 
-        if (error) {
-            setServerError(error.message ?? "Code invalide ou expiré.");
-            toast.error(error.message ?? "Code invalide ou expiré.");
-            return;
+        try {
+            const { error } = await authClient.emailOtp.verifyEmail({
+                email,
+                otp: values.otp,
+            });
+
+            if (error) {
+                const message = getAuthErrorMessage(error);
+                setServerError(message);
+                toast.error(message);
+                return;
+            }
+
+            toast.success("Email vérifié ! Bienvenue sur NextPress.");
+            router.push("/dashboard");
+            router.refresh();
+        } catch (err) {
+            const message = getThrownErrorMessage(err);
+            setServerError(message);
+            toast.error(message);
         }
-
-        router.push("/dashboard");
-        router.refresh();
     };
 
     const resendCode = async () => {
+        setServerError(null);
         setResending(true);
-        await authClient.emailOtp.sendVerificationOtp({
-            email,
-            type: "email-verification",
-        });
-        setResending(false);
-        setCooldown(60);
-        toast.success("Code renvoyé ! Vérifiez votre email.");
+
+        try {
+            const { error } = await authClient.emailOtp.sendVerificationOtp({
+                email,
+                type: "email-verification",
+            });
+
+            if (error) {
+                const message = getAuthErrorMessage(error);
+                setServerError(message);
+                toast.error(message);
+                return;
+            }
+
+            setCooldown(60);
+            toast.success(`Nouveau code envoyé à ${email}.`);
+        } catch (err) {
+            const message = getThrownErrorMessage(err);
+            setServerError(message);
+            toast.error(message);
+        } finally {
+            setResending(false);
+        }
     };
 
     return (

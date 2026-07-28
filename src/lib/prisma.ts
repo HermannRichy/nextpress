@@ -9,6 +9,14 @@ const createPrismaClient = () => {
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: true },
   });
+
+  // Un pool pg sans listener "error" fait planter le process quand une connexion
+  // inactive tombe (fréquent avec un Postgres managé). On logge et on continue :
+  // le pool ouvrira une nouvelle connexion à la requête suivante.
+  pool.on("error", (err) => {
+    console.error("[prisma] Erreur du pool PostgreSQL :", err);
+  });
+
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 };

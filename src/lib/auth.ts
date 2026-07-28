@@ -24,7 +24,9 @@ export const auth = betterAuth({
             sendVerificationOnSignUp: true,
             overrideDefaultEmailVerification: true,
             sendVerificationOTP: async ({ email, otp, type }) => {
-                sendVerificationOtpEmail({ email, otp, type });
+                // L'envoi doit être attendu : une promesse rejetée non capturée
+                // ici termine le process Node et coupe la requête en cours.
+                await sendVerificationOtpEmail({ email, otp, type });
             },
         }),
         admin({
@@ -40,7 +42,19 @@ export const auth = betterAuth({
         user: {
             create: {
                 after: async (user) => {
-                    sendWelcomeEmail({ email: user.email, name: user.name });
+                    // L'email de bienvenue ne doit jamais faire échouer l'inscription,
+                    // mais son échec ne doit pas non plus tuer le process.
+                    try {
+                        await sendWelcomeEmail({
+                            email: user.email,
+                            name: user.name,
+                        });
+                    } catch (err) {
+                        console.error(
+                            "[auth] Envoi de l'email de bienvenue échoué :",
+                            err,
+                        );
+                    }
                 },
             },
         },

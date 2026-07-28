@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { getAuthErrorMessage, getThrownErrorMessage } from "@/lib/auth-errors";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -35,20 +36,32 @@ export default function SignupPage() {
 
     const onSubmit = async (values: FormValues) => {
         setServerError(null);
-        const { error } = await authClient.signUp.email({
-            name: values.name,
-            email: values.email,
-            password: values.password,
-        });
 
-        if (error) {
-            setServerError(error.message ?? "Une erreur est survenue.");
-            toast.error(error.message ?? "Une erreur est survenue.");
-            return;
+        try {
+            const { error } = await authClient.signUp.email({
+                name: values.name,
+                email: values.email,
+                password: values.password,
+            });
+
+            if (error) {
+                const message = getAuthErrorMessage(error);
+                setServerError(message);
+                toast.error(message);
+                return;
+            }
+
+            toast.success(
+                `Compte créé ! Un code de vérification a été envoyé à ${values.email}.`,
+            );
+            router.push(
+                `/verify-email?email=${encodeURIComponent(values.email)}`,
+            );
+        } catch (err) {
+            const message = getThrownErrorMessage(err);
+            setServerError(message);
+            toast.error(message);
         }
-
-        toast.success("Compte créé ! Vérifiez votre email.");
-        router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
     };
 
     return (
