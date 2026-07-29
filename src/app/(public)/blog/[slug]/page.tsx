@@ -5,6 +5,7 @@ import { IconChevronRight } from "@tabler/icons-react";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/app/(admin)/dashboard/settings/actions";
 import { PostCard, type PostCardData } from "@/components/public/post-card";
+import { CommentsSection } from "@/components/public/comments-section";
 import { Badge } from "@/components/ui/badge";
 
 export const revalidate = 300;
@@ -233,6 +234,10 @@ export default async function PostPage({ params }: PageProps) {
                         </div>
                     </footer>
                 )}
+
+                <div className="mt-12 border-t border-border pt-10">
+                    <CommentsSection postId={post.id} />
+                </div>
             </div>
 
             {relatedSerialized.length > 0 && (

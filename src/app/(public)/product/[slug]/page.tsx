@@ -8,6 +8,8 @@ import { formatPrice } from "@/lib/currency";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProductGallery } from "@/components/public/product-gallery";
+import { RatingStars } from "@/components/public/rating-stars";
+import { ReviewsSection } from "@/components/public/reviews-section";
 import {
     ProductCard,
     type ProductCardData,
@@ -86,6 +88,15 @@ export default async function ProductPage({ params }: PageProps) {
         : 0;
 
     const firstCategory = product.categories[0]?.category;
+
+    // Note moyenne affichée sous le titre : seuls les avis approuvés comptent.
+    const ratingAgg = await prisma.productReview.aggregate({
+        where: { productId: product.id, status: "APPROVED" },
+        _avg: { rating: true },
+        _count: { rating: true },
+    });
+    const reviewCount = ratingAgg._count.rating;
+    const averageRating = ratingAgg._avg.rating ?? 0;
 
     const related = await prisma.product.findMany({
         where: {
@@ -195,6 +206,19 @@ export default async function ProductPage({ params }: PageProps) {
                             {product.name}
                         </h1>
 
+                        {reviewCount > 0 && (
+                            <a
+                                href="#avis"
+                                className="flex w-fit items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                                <RatingStars value={averageRating} size={15} />
+                                <span>
+                                    {averageRating.toFixed(1)} · {reviewCount}{" "}
+                                    avis
+                                </span>
+                            </a>
+                        )}
+
                         <div className="flex flex-wrap items-baseline gap-3">
                             <span
                                 className={
@@ -303,6 +327,13 @@ export default async function ProductPage({ params }: PageProps) {
                     )}
                 </div>
             </article>
+
+            <section id="avis" className="mt-20 border-t border-border pt-10">
+                <ReviewsSection
+                    productId={product.id}
+                    productSlug={product.slug}
+                />
+            </section>
 
             {relatedSerialized.length > 0 && (
                 <aside className="mt-20 border-t border-border pt-10">
