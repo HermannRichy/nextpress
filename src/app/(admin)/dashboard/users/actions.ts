@@ -124,10 +124,10 @@ export async function createUser(data: {
         });
     } catch (err) {
         console.error("[users] Envoi de l'email d'accès échoué :", err);
+        const reason = err instanceof Error ? ` ${err.message}` : "";
         return {
             emailSent: false,
-            warning:
-                "Compte créé, mais l'email n'a pas pu être envoyé. Transmettez les identifiants manuellement.",
+            warning: `Compte créé, mais l'email n'a pas pu être envoyé.${reason} Transmettez les identifiants manuellement.`,
         };
     }
 

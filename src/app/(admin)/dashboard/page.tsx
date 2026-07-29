@@ -6,6 +6,7 @@ import {
     IconFileText,
 } from "@tabler/icons-react";
 import { prisma } from "@/lib/prisma";
+import { formatCurrency } from "@/lib/currency";
 import { getSiteSettings } from "./settings/actions";
 import { KpiCard } from "@/components/admin/dashboard/kpi-card";
 import { RevenueChart } from "@/components/admin/dashboard/revenue-chart";
@@ -145,12 +146,7 @@ export default async function DashboardPage() {
 
     const currency = settings.currency;
 
-    const formatAmount = (v: number) =>
-        new Intl.NumberFormat("fr-FR", {
-            style: "currency",
-            currency,
-            maximumFractionDigits: 0,
-        }).format(v);
+    const formatAmount = (v: number) => formatCurrency(v, currency);
 
     return (
         <section className="space-y-6">

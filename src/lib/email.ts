@@ -6,6 +6,32 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.RESEND_FROM ?? "NextPress <noreply@nextpress.dev>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
+// ─── Envoi ───────────────────────────────────────────────────────────────────
+
+/**
+ * Le SDK Resend ne rejette jamais : il résout vers { data, error }. Sans cette
+ * inspection, un envoi refusé (domaine non vérifié, clé absente, destinataire
+ * interdit en mode test) passerait pour un succès.
+ */
+async function send(payload: {
+    to: string;
+    subject: string;
+    html: string;
+}) {
+    const { error } = await resend.emails.send({
+        from: FROM,
+        to: payload.to,
+        subject: payload.subject,
+        html: payload.html,
+    });
+
+    if (error) {
+        const detail = [error.name, error.message].filter(Boolean).join(" — ");
+        console.error("[email] Envoi refusé par Resend :", error);
+        throw new Error(`Envoi de l'email impossible : ${detail}`);
+    }
+}
+
 // ─── Senders ─────────────────────────────────────────────────────────────────
 
 export async function sendVerificationOtpEmail({
@@ -23,8 +49,7 @@ export async function sendVerificationOtpEmail({
         "sign-in": "Votre code de connexion",
         "change-email": "Confirmez votre nouvel email",
     };
-    await resend.emails.send({
-        from: FROM,
+    await send({
         to: email,
         subject: subjects[type] ?? "Votre code de vérification",
         html: otpHtml(otp, type),
@@ -32,8 +57,7 @@ export async function sendVerificationOtpEmail({
 }
 
 export async function sendWelcomeEmail({ email, name }: { email: string; name: string }) {
-    await resend.emails.send({
-        from: FROM,
+    await send({
         to: email,
         subject: "Bienvenue sur NextPress 🎉",
         html: welcomeHtml(name),
@@ -58,8 +82,7 @@ export async function sendAccountCreatedEmail({
     password: string;
     invitedBy: string;
 }) {
-    await resend.emails.send({
-        from: FROM,
+    await send({
         to: email,
         subject: "Votre accès à NextPress",
         html: accountCreatedHtml({ email, name, role, password, invitedBy }),

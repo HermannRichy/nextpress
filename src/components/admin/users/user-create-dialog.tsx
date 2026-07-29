@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,6 +72,17 @@ export function UserCreateDialog() {
 
     const role = watch("role");
 
+    // Un seul point de réinitialisation : « Annuler » appelle setOpen(false)
+    // directement, ce qui ne déclenche pas onOpenChange de Radix. Réagir à la
+    // fermeture couvre tous les chemins (annulation, Échap, clic extérieur,
+    // succès, échec).
+    useEffect(() => {
+        if (!open) {
+            reset({ name: "", email: "", password: "", role: "CLIENT" });
+            setShowPassword(false);
+        }
+    }, [open, reset]);
+
     const onSubmit = async (values: FormValues) => {
         try {
             const result = await createUser(values);
@@ -84,7 +95,6 @@ export function UserCreateDialog() {
                 );
             }
 
-            reset({ role: "CLIENT" });
             setOpen(false);
         } catch (err) {
             toast.error(
@@ -96,13 +106,7 @@ export function UserCreateDialog() {
     };
 
     return (
-        <Dialog
-            open={open}
-            onOpenChange={(o) => {
-                setOpen(o);
-                if (!o) reset({ role: "CLIENT" });
-            }}
-        >
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button>
                     <IconPlus size={16} className="mr-2" />

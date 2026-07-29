@@ -1,4 +1,6 @@
+import type { PaymentStatus } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
+import { PAYMENT_STATUS } from "@/lib/order-status";
 import {
     Table,
     TableBody,
@@ -7,8 +9,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-
-type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
 
 interface Order {
     id: string;
@@ -24,13 +24,6 @@ interface RecentOrdersProps {
     orders: Order[];
     currency: string;
 }
-
-const STATUS_CONFIG: Record<PaymentStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    PAID: { label: "Payé", variant: "default" },
-    PENDING: { label: "En attente", variant: "secondary" },
-    FAILED: { label: "Échoué", variant: "destructive" },
-    REFUNDED: { label: "Remboursé", variant: "outline" },
-};
 
 function formatDate(date: Date) {
     return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(date);
@@ -58,7 +51,7 @@ export function RecentOrders({ orders, currency }: RecentOrdersProps) {
             </TableHeader>
             <TableBody>
                 {orders.map((order) => {
-                    const status = STATUS_CONFIG[order.paymentStatus];
+                    const status = PAYMENT_STATUS[order.paymentStatus];
                     return (
                         <TableRow key={order.id}>
                             <TableCell className="font-mono text-xs">
