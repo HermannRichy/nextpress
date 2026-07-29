@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
+import { RatingStars } from "@/components/public/rating-stars";
 import {
     deleteProduct,
     updateProductStatus,
@@ -152,6 +153,7 @@ export function ProductsTable({ products, currency }: ProductsTableProps) {
                         <TableHead>Nom</TableHead>
                         <TableHead>Prix</TableHead>
                         <TableHead>Stock</TableHead>
+                        <TableHead>Note</TableHead>
                         <TableHead>Catégories</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead className="w-10" />
@@ -220,6 +222,24 @@ export function ProductsTable({ products, currency }: ProductsTableProps) {
                                     >
                                         {stock.label}
                                     </Badge>
+                                </TableCell>
+
+                                <TableCell>
+                                    {product.rating ? (
+                                        <span className="flex items-center gap-1.5 whitespace-nowrap">
+                                            <RatingStars
+                                                value={product.rating.average}
+                                                size={12}
+                                            />
+                                            <span className="text-xs text-muted-foreground">
+                                                ({product.rating.count})
+                                            </span>
+                                        </span>
+                                    ) : (
+                                        <span className="text-xs text-muted-foreground">
+                                            —
+                                        </span>
+                                    )}
                                 </TableCell>
 
                                 <TableCell>

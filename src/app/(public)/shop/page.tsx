@@ -7,6 +7,7 @@ import {
 } from "@tabler/icons-react";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/app/(admin)/dashboard/settings/actions";
+import { getRatingMap } from "@/lib/ratings";
 import {
     ProductCard,
     type ProductCardData,
@@ -85,6 +86,8 @@ export default async function ShopPage({ searchParams }: PageProps) {
     const hasPrev = page > 1;
     const products = rawProducts.slice(0, PER_PAGE);
 
+    const ratings = await getRatingMap(products.map((p) => p.id));
+
     const serialized: ProductCardData[] = products.map((p) => ({
         slug: p.slug,
         name: p.name,
@@ -93,6 +96,7 @@ export default async function ShopPage({ searchParams }: PageProps) {
         promoPrice: p.promoPrice === null ? null : Number(p.promoPrice),
         stock: p.stock,
         categories: p.categories.map((c) => c.category),
+        rating: ratings.get(p.id) ?? null,
     }));
 
     const activeCategory = categories.find((c) => c.slug === categorySlug);

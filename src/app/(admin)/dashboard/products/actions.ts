@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { ProductStatus, ProductCondition } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getRatingMap, type ProductRating } from "@/lib/ratings";
 
 // ─── Garde ────────────────────────────────────────────────────────────────────
 
@@ -66,6 +67,8 @@ export interface ProductRow {
     lowStockThreshold: number;
     status: ProductStatus;
     categories: { id: string; name: string }[];
+    /** Moyenne des avis approuvés ; null si aucun. */
+    rating: ProductRating | null;
     updatedAt: Date;
 }
 
@@ -105,6 +108,8 @@ export async function getProducts(filters: {
         take: 200,
     });
 
+    const ratings = await getRatingMap(rows.map((p) => p.id));
+
     const mapped: ProductRow[] = rows.map((p) => ({
         id: p.id,
         name: p.name,
@@ -117,6 +122,7 @@ export async function getProducts(filters: {
         lowStockThreshold: p.lowStockThreshold,
         status: p.status,
         categories: p.categories.map((c) => c.category),
+        rating: ratings.get(p.id) ?? null,
         updatedAt: p.updatedAt,
     }));
 

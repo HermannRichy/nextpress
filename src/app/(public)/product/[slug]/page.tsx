@@ -5,6 +5,7 @@ import { IconChevronRight } from "@tabler/icons-react";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/app/(admin)/dashboard/settings/actions";
 import { formatPrice } from "@/lib/currency";
+import { getRatingMap } from "@/lib/ratings";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProductGallery } from "@/components/public/product-gallery";
@@ -115,6 +116,8 @@ export default async function ProductPage({ params }: PageProps) {
         take: 4,
     });
 
+    const relatedRatings = await getRatingMap(related.map((p) => p.id));
+
     const relatedSerialized: ProductCardData[] = related.map((p) => ({
         slug: p.slug,
         name: p.name,
@@ -123,6 +126,7 @@ export default async function ProductPage({ params }: PageProps) {
         promoPrice: p.promoPrice === null ? null : Number(p.promoPrice),
         stock: p.stock,
         categories: p.categories.map((c) => c.category),
+        rating: relatedRatings.get(p.id) ?? null,
     }));
 
     // Regroupe les variantes par type : « Taille : S, M, L » plutôt qu'une liste plate.

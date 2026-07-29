@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { formatPrice } from "@/lib/currency";
+import type { ProductRating } from "@/lib/ratings";
+import { RatingStars } from "./rating-stars";
 
 export interface ProductCardData {
     slug: string;
@@ -10,6 +12,8 @@ export interface ProductCardData {
     promoPrice: number | null;
     stock: number;
     categories: { name: string; slug: string }[];
+    /** Absent ou sans avis approuvé : rien n'est affiché. */
+    rating?: ProductRating | null;
 }
 
 export function ProductCard({
@@ -71,6 +75,17 @@ export function ProductCard({
                         {product.name}
                     </Link>
                 </h3>
+
+                {/* Un produit sans avis n'affiche rien : « 0 étoile »
+                    le pénaliserait à tort. */}
+                {product.rating && product.rating.count > 0 && (
+                    <p className="flex items-center gap-1.5">
+                        <RatingStars value={product.rating.average} size={12} />
+                        <span className="text-xs text-muted-foreground">
+                            ({product.rating.count})
+                        </span>
+                    </p>
+                )}
 
                 <p className="mt-auto flex items-baseline gap-2 pt-2">
                     <span
