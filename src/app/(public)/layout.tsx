@@ -14,7 +14,16 @@ export default async function PublicLayout({ children }: { children: React.React
                     >
                         {settings.siteName}
                     </Link>
-                    <nav aria-label="Navigation principale">
+                    <nav
+                        aria-label="Navigation principale"
+                        className="flex items-center gap-5"
+                    >
+                        <Link
+                            href="/shop"
+                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            Boutique
+                        </Link>
                         <Link
                             href="/blog"
                             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
