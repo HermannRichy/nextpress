@@ -29,6 +29,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { RowActions } from "@/components/admin/ui/row-actions";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
 import { ZoneDialog } from "./zone-dialog";
@@ -162,30 +167,39 @@ export function ShippingTabs({ zones, points, currency }: ShippingTabsProps) {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex items-center justify-end gap-1">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={() => {
-                                                        setEditingZone(zone);
-                                                        setZoneDialog(true);
-                                                    }}
-                                                    aria-label={`Modifier ${zone.name}`}
+                                            <div className="flex justify-end">
+                                                <RowActions
+                                                    label={zone.name}
+                                                    disabled={pending}
                                                 >
-                                                    <IconEdit size={15} />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                                    onClick={() =>
-                                                        setDeletingZone(zone)
-                                                    }
-                                                    aria-label={`Supprimer ${zone.name}`}
-                                                >
-                                                    <IconTrash size={15} />
-                                                </Button>
+                                                    <DropdownMenuItem
+                                                        onSelect={() => {
+                                                            setEditingZone(zone);
+                                                            setZoneDialog(true);
+                                                        }}
+                                                    >
+                                                        <IconEdit
+                                                            size={14}
+                                                            className="mr-2"
+                                                        />
+                                                        Modifier
+                                                    </DropdownMenuItem>
+
+                                                    <DropdownMenuSeparator />
+
+                                                    <DropdownMenuItem
+                                                        onSelect={() =>
+                                                            setDeletingZone(zone)
+                                                        }
+                                                        className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                                    >
+                                                        <IconTrash
+                                                            size={14}
+                                                            className="mr-2"
+                                                        />
+                                                        Supprimer
+                                                    </DropdownMenuItem>
+                                                </RowActions>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -264,30 +278,43 @@ export function ShippingTabs({ zones, points, currency }: ShippingTabsProps) {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex items-center justify-end gap-1">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={() => {
-                                                        setEditingPoint(point);
-                                                        setPointDialog(true);
-                                                    }}
-                                                    aria-label={`Modifier ${point.name}`}
+                                            <div className="flex justify-end">
+                                                <RowActions
+                                                    label={point.name}
+                                                    disabled={pending}
                                                 >
-                                                    <IconEdit size={15} />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                                    onClick={() =>
-                                                        setDeletingPoint(point)
-                                                    }
-                                                    aria-label={`Supprimer ${point.name}`}
-                                                >
-                                                    <IconTrash size={15} />
-                                                </Button>
+                                                    <DropdownMenuItem
+                                                        onSelect={() => {
+                                                            setEditingPoint(
+                                                                point,
+                                                            );
+                                                            setPointDialog(true);
+                                                        }}
+                                                    >
+                                                        <IconEdit
+                                                            size={14}
+                                                            className="mr-2"
+                                                        />
+                                                        Modifier
+                                                    </DropdownMenuItem>
+
+                                                    <DropdownMenuSeparator />
+
+                                                    <DropdownMenuItem
+                                                        onSelect={() =>
+                                                            setDeletingPoint(
+                                                                point,
+                                                            )
+                                                        }
+                                                        className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                                    >
+                                                        <IconTrash
+                                                            size={14}
+                                                            className="mr-2"
+                                                        />
+                                                        Supprimer
+                                                    </DropdownMenuItem>
+                                                </RowActions>
                                             </div>
                                         </TableCell>
                                     </TableRow>

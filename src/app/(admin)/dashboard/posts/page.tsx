@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { getPosts } from "./actions";
 import { PostsTable } from "@/components/admin/posts/posts-table";
 import { PostsFilters } from "@/components/admin/posts/posts-filters";
+import { PageHeader } from "@/components/admin/ui/page-header";
+import { TableCard } from "@/components/admin/ui/table-card";
 
 export const metadata: Metadata = { title: "Posts" };
 
@@ -45,26 +47,24 @@ export default async function PostsPage({ searchParams }: PageProps) {
 
     return (
         <section className="space-y-6">
-            <header className="flex items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-semibold">Posts</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {posts.length} post{posts.length !== 1 ? "s" : ""}
-                    </p>
-                </div>
-                <Button asChild>
-                    <Link href="/dashboard/posts/new">
-                        <IconPlus size={16} className="mr-2" />
-                        Nouveau post
-                    </Link>
-                </Button>
-            </header>
+            <PageHeader
+                title="Posts"
+                description={`${posts.length} post${posts.length !== 1 ? "s" : ""}`}
+                actions={
+                    <Button asChild>
+                        <Link href="/dashboard/posts/new">
+                            <IconPlus size={16} className="mr-2" />
+                            Nouveau post
+                        </Link>
+                    </Button>
+                }
+            />
 
             <PostsFilters categories={categories} authors={authors} />
 
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <TableCard>
                 <PostsTable posts={posts} />
-            </div>
+            </TableCard>
         </section>
     );
 }

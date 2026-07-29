@@ -6,6 +6,8 @@ import { getUsers } from "./actions";
 import { UsersTable } from "@/components/admin/users/users-table";
 import { UsersFilters } from "@/components/admin/users/users-filters";
 import { UserCreateDialog } from "@/components/admin/users/user-create-dialog";
+import { PageHeader } from "@/components/admin/ui/page-header";
+import { TableCard } from "@/components/admin/ui/table-card";
 
 export const metadata: Metadata = { title: "Utilisateurs" };
 
@@ -39,25 +41,21 @@ export default async function UsersPage({ searchParams }: PageProps) {
 
     return (
         <section className="space-y-6">
-            <header className="flex items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-semibold">Utilisateurs</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {users.length} utilisateur{users.length !== 1 ? "s" : ""}
-                    </p>
-                </div>
-                {canWrite && <UserCreateDialog />}
-            </header>
+            <PageHeader
+                title="Utilisateurs"
+                description={`${users.length} utilisateur${users.length !== 1 ? "s" : ""}`}
+                actions={canWrite ? <UserCreateDialog /> : undefined}
+            />
 
             <UsersFilters />
 
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <TableCard>
                 <UsersTable
                     users={users}
                     canWrite={canWrite}
                     currentUserId={session?.user.id ?? ""}
                 />
-            </div>
+            </TableCard>
         </section>
     );
 }

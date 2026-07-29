@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import {
-    IconDotsVertical,
     IconTrash,
     IconLoader2,
     IconBan,
@@ -10,6 +9,7 @@ import {
     IconKey,
     IconUserShield,
     IconMailExclamation,
+    IconUsersGroup,
 } from "@tabler/icons-react";
 import type { Role } from "@prisma/client";
 import {
@@ -21,16 +21,17 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RowActions } from "@/components/admin/ui/row-actions";
+import { EmptyState } from "@/components/admin/ui/empty-state";
+import {
+    StatusBadge,
+    type StatusTone,
+} from "@/components/admin/ui/status-badge";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -68,10 +69,10 @@ interface User {
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 // Couleurs de la spec 3.11 : Admin bleu, Éditeur violet, Client gris.
-const ROLE_STYLES: Record<Role, string> = {
-    ADMIN: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-    EDITOR: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
-    CLIENT: "bg-muted text-muted-foreground border-border",
+const ROLE_TONES: Record<Role, StatusTone> = {
+    ADMIN: "info",
+    EDITOR: "accent",
+    CLIENT: "neutral",
 };
 
 function initials(name: string) {
@@ -130,9 +131,11 @@ export function UsersTable({ users, canWrite, currentUserId }: UsersTableProps) 
 
     if (users.length === 0) {
         return (
-            <p className="text-sm text-muted-foreground py-12 text-center">
-                Aucun utilisateur ne correspond à ces critères.
-            </p>
+            <EmptyState
+                icon={IconUsersGroup}
+                title="Aucun utilisateur"
+                description="Aucun compte ne correspond à ces critères. Ajustez les filtres ou créez un utilisateur."
+            />
         );
     }
 
@@ -183,37 +186,34 @@ export function UsersTable({ users, canWrite, currentUserId }: UsersTableProps) 
                                 </TableCell>
 
                                 <TableCell>
-                                    <Badge
-                                        variant="outline"
-                                        className={ROLE_STYLES[user.role]}
-                                    >
+                                    <StatusBadge tone={ROLE_TONES[user.role]}>
                                         {ROLE_LABELS[user.role]}
-                                    </Badge>
+                                    </StatusBadge>
                                 </TableCell>
 
                                 <TableCell>
                                     {user.banned ? (
-                                        <Badge
-                                            variant="outline"
-                                            className="gap-1 bg-destructive/10 text-destructive border-destructive/20"
+                                        <StatusBadge
+                                            tone="danger"
+                                            icon={<IconBan size={12} />}
                                             title={user.banReason ?? undefined}
                                         >
-                                            <IconBan size={12} />
                                             Suspendu
-                                        </Badge>
+                                        </StatusBadge>
                                     ) : user.emailVerified ? (
-                                        <Badge variant="outline" className="gap-1">
-                                            <IconCircleCheck size={12} />
-                                            Actif
-                                        </Badge>
-                                    ) : (
-                                        <Badge
-                                            variant="secondary"
-                                            className="gap-1"
+                                        <StatusBadge
+                                            tone="success"
+                                            icon={<IconCircleCheck size={12} />}
                                         >
-                                            <IconMailExclamation size={12} />
+                                            Actif
+                                        </StatusBadge>
+                                    ) : (
+                                        <StatusBadge
+                                            tone="warning"
+                                            icon={<IconMailExclamation size={12} />}
+                                        >
                                             Non vérifié
-                                        </Badge>
+                                        </StatusBadge>
                                     )}
                                 </TableCell>
 
@@ -227,21 +227,7 @@ export function UsersTable({ users, canWrite, currentUserId }: UsersTableProps) 
 
                                 {canWrite && (
                                     <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    aria-label={`Actions pour ${user.name}`}
-                                                >
-                                                    <IconDotsVertical size={15} />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent
-                                                align="end"
-                                                className="w-52"
-                                            >
+                                        <RowActions label={user.name}>
                                                 <DropdownMenuLabel className="flex items-center gap-1.5 text-xs font-normal text-muted-foreground">
                                                     <IconUserShield size={13} />
                                                     Changer le rôle
@@ -342,8 +328,7 @@ export function UsersTable({ users, canWrite, currentUserId }: UsersTableProps) 
                                                     />
                                                     Supprimer
                                                 </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        </RowActions>
                                     </TableCell>
                                 )}
                             </TableRow>

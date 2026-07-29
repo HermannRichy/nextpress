@@ -30,39 +30,66 @@ export function PageLoader() {
     );
 }
 
-// ─── Posts (filtres + table) ─────────────────────────────────────────────────
+// ─── Liste (en-tête + filtres + table) ───────────────────────────────────────
 
-export function PostsLoader() {
+interface ListLoaderProps {
+    /** Nombre de contrôles de filtre à esquisser. */
+    filters?: number;
+    /** Bouton d'action principal en haut à droite. */
+    withAction?: boolean;
+    rows?: number;
+}
+
+/**
+ * Squelette des pages de liste, calqué sur PageHeader + FilterBar + TableCard.
+ * Un squelette qui n'a pas la forme de la page produit un saut de mise en page
+ * à l'affichage des données.
+ */
+export function ListLoader({
+    filters = 3,
+    withAction = true,
+    rows = 8,
+}: ListLoaderProps = {}) {
     return (
         <section className="space-y-6 animate-pulse">
-            <header className="flex items-center justify-between gap-4">
+            <header className="flex items-start justify-between gap-4">
                 <div className="space-y-2">
-                    <div className="h-7 w-32 rounded-lg bg-muted" />
-                    <div className="h-4 w-20 rounded-lg bg-muted" />
+                    <div className="h-8 w-40 rounded-lg bg-muted" />
+                    <div className="h-4 w-24 rounded-lg bg-muted" />
                 </div>
-                <div className="h-9 w-36 rounded-lg bg-muted" />
+                {withAction && <div className="h-9 w-36 rounded-lg bg-muted" />}
             </header>
 
-            <div className="flex flex-wrap gap-2">
-                {[0, 1, 2].map((i) => (
-                    <div key={i} className="h-9 w-40 rounded-lg bg-muted" />
-                ))}
-            </div>
+            {filters > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {Array.from({ length: filters }).map((_, i) => (
+                        <div key={i} className="h-9 w-40 rounded-lg bg-muted" />
+                    ))}
+                </div>
+            )}
 
-            <div className="rounded-xl border border-border overflow-hidden">
+            <div className="overflow-hidden rounded-xl border border-border">
                 <div className="h-10 bg-muted/60" />
-                {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-4 px-4 h-12 border-t border-border">
-                        <div className="h-4 flex-1 max-w-xs rounded bg-muted" />
-                        <div className="h-5 w-20 rounded-full bg-muted hidden sm:block" />
+                {Array.from({ length: rows }).map((_, i) => (
+                    <div
+                        key={i}
+                        className="flex h-[52px] items-center gap-4 border-t border-border px-4"
+                    >
+                        <div className="h-4 max-w-xs flex-1 rounded bg-muted" />
+                        <div className="hidden h-5 w-20 rounded-full bg-muted sm:block" />
                         <div className="h-5 w-24 rounded-full bg-muted" />
-                        <div className="h-4 w-24 rounded bg-muted hidden md:block" />
-                        <div className="h-4 w-16 rounded bg-muted hidden lg:block" />
+                        <div className="hidden h-4 w-24 rounded bg-muted md:block" />
+                        <div className="hidden h-4 w-16 rounded bg-muted lg:block" />
                     </div>
                 ))}
             </div>
         </section>
     );
+}
+
+/** Conservé pour les pages qui l'importaient déjà. */
+export function PostsLoader() {
+    return <ListLoader />;
 }
 
 // ─── Éditeur de post (2 colonnes) ────────────────────────────────────────────

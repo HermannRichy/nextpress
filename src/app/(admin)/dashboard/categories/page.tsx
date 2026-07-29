@@ -6,6 +6,7 @@ import {
     getPostTags,
 } from "./actions";
 import { CategoriesTabs } from "@/components/admin/categories/categories-tabs";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 export const metadata: Metadata = { title: "Catégories" };
 
@@ -19,14 +20,11 @@ export default async function CategoriesPage() {
         ]);
 
     return (
-        <section>
-            <header className="mb-6">
-                <h1 className="text-2xl font-semibold">Catégories & tags</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                    Organisez vos produits et vos posts. Les catégories
-                    acceptent une hiérarchie parent/enfant.
-                </p>
-            </header>
+        <section className="space-y-6">
+            <PageHeader
+                title="Catégories & tags"
+                description="Organisez vos produits et vos posts. Les catégories acceptent une hiérarchie parent/enfant."
+            />
 
             <CategoriesTabs
                 productCategories={productCategories}

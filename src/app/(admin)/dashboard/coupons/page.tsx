@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "../settings/actions";
 import { getCoupons } from "./actions";
 import { CouponsTable } from "@/components/admin/coupons/coupons-table";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 export const metadata: Metadata = { title: "Coupons" };
 
@@ -23,13 +24,10 @@ export default async function CouponsPage() {
 
     return (
         <section className="space-y-6">
-            <header>
-                <h1 className="text-2xl font-semibold">Coupons</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                    Codes promo, conditions d&apos;application et fenêtres de
-                    validité.
-                </p>
-            </header>
+            <PageHeader
+                title="Coupons"
+                description="Codes promo, conditions d'application et fenêtres de validité."
+            />
 
             <CouponsTable
                 coupons={coupons}

@@ -7,6 +7,7 @@ import {
     IconTrash,
     IconLoader2,
     IconInfinity,
+    IconTicketOff,
 } from "@tabler/icons-react";
 import type { CouponType } from "@prisma/client";
 import {
@@ -30,6 +31,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import {
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { RowActions } from "@/components/admin/ui/row-actions";
+import { EmptyState } from "@/components/admin/ui/empty-state";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
 import { CouponDialog } from "./coupon-dialog";
@@ -156,9 +163,22 @@ export function CouponsTable({
 
             <div className="rounded-xl border border-border bg-card overflow-hidden">
                 {coupons.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-12 text-center">
-                        Aucun coupon pour le moment.
-                    </p>
+                    <EmptyState
+                        icon={IconTicketOff}
+                        title="Aucun coupon"
+                        description="Créez un code promo pour l'offrir à vos clients."
+                        action={
+                            <Button
+                                size="sm"
+                                onClick={() => {
+                                    setEditing(null);
+                                    setDialogOpen(true);
+                                }}
+                            >
+                                Nouveau coupon
+                            </Button>
+                        }
+                    />
                 ) : (
                     <Table>
                         <TableHeader>
@@ -224,30 +244,39 @@ export function CouponsTable({
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center justify-end gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8"
-                                                onClick={() => {
-                                                    setEditing(coupon);
-                                                    setDialogOpen(true);
-                                                }}
-                                                aria-label={`Modifier ${coupon.code}`}
+                                        <div className="flex justify-end">
+                                            <RowActions
+                                                label={coupon.code}
+                                                disabled={pending}
                                             >
-                                                <IconEdit size={15} />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                onClick={() =>
-                                                    setDeleting(coupon)
-                                                }
-                                                aria-label={`Supprimer ${coupon.code}`}
-                                            >
-                                                <IconTrash size={15} />
-                                            </Button>
+                                                <DropdownMenuItem
+                                                    onSelect={() => {
+                                                        setEditing(coupon);
+                                                        setDialogOpen(true);
+                                                    }}
+                                                >
+                                                    <IconEdit
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Modifier
+                                                </DropdownMenuItem>
+
+                                                <DropdownMenuSeparator />
+
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        setDeleting(coupon)
+                                                    }
+                                                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                                >
+                                                    <IconTrash
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Supprimer
+                                                </DropdownMenuItem>
+                                            </RowActions>
                                         </div>
                                     </TableCell>
                                 </TableRow>

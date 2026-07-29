@@ -7,7 +7,14 @@ import {
     IconTrash,
     IconLoader2,
     IconCornerDownRight,
+    IconFolderOff,
 } from "@tabler/icons-react";
+import {
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { RowActions } from "@/components/admin/ui/row-actions";
+import { EmptyState } from "@/components/admin/ui/empty-state";
 import {
     Table,
     TableBody,
@@ -99,9 +106,16 @@ export function CategoriesPanel({
 
             <div className="rounded-xl border border-border bg-card overflow-hidden">
                 {categories.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-12 text-center">
-                        Aucune catégorie pour le moment.
-                    </p>
+                    <EmptyState
+                        icon={IconFolderOff}
+                        title="Aucune catégorie"
+                        description="Créez une première catégorie pour organiser vos contenus."
+                        action={
+                            <Button size="sm" onClick={openCreate}>
+                                Nouvelle catégorie
+                            </Button>
+                        }
+                    />
                 ) : (
                     <Table>
                         <TableHeader>
@@ -142,27 +156,38 @@ export function CategoriesPanel({
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center justify-end gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8"
-                                                onClick={() => openEdit(category)}
-                                                aria-label={`Modifier ${category.name}`}
+                                        <div className="flex justify-end">
+                                            <RowActions
+                                                label={category.name}
+                                                disabled={pending}
                                             >
-                                                <IconEdit size={15} />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                onClick={() =>
-                                                    setDeleting(category)
-                                                }
-                                                aria-label={`Supprimer ${category.name}`}
-                                            >
-                                                <IconTrash size={15} />
-                                            </Button>
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        openEdit(category)
+                                                    }
+                                                >
+                                                    <IconEdit
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Modifier
+                                                </DropdownMenuItem>
+
+                                                <DropdownMenuSeparator />
+
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        setDeleting(category)
+                                                    }
+                                                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                                >
+                                                    <IconTrash
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Supprimer
+                                                </DropdownMenuItem>
+                                            </RowActions>
                                         </div>
                                     </TableCell>
                                 </TableRow>

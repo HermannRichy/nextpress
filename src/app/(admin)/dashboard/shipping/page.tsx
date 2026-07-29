@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getSiteSettings } from "../settings/actions";
 import { getShippingZones, getPickupPoints } from "./actions";
 import { ShippingTabs } from "@/components/admin/shipping/shipping-tabs";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 export const metadata: Metadata = { title: "Livraison" };
 
@@ -13,14 +14,11 @@ export default async function ShippingPage() {
     ]);
 
     return (
-        <section>
-            <header className="mb-6">
-                <h1 className="text-2xl font-semibold">Livraison</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Secteurs livrés et points de retrait proposés au moment du
-                    paiement.
-                </p>
-            </header>
+        <section className="space-y-6">
+            <PageHeader
+                title="Livraison"
+                description="Secteurs livrés et points de retrait proposés au moment du paiement."
+            />
 
             <ShippingTabs
                 zones={zones}

@@ -8,6 +8,7 @@ import {
     IconTrash,
     IconLoader2,
     IconExternalLink,
+    IconStarOff,
 } from "@tabler/icons-react";
 import type { ReviewStatus } from "@prisma/client";
 import {
@@ -28,8 +29,16 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { RowActions } from "@/components/admin/ui/row-actions";
+import { EmptyState } from "@/components/admin/ui/empty-state";
+import {
+    StatusBadge,
+    type StatusTone,
+} from "@/components/admin/ui/status-badge";
 import { toast } from "sonner";
 import { RatingStars } from "@/components/public/rating-stars";
 import {
@@ -38,14 +47,12 @@ import {
     type ReviewRow,
 } from "@/app/(admin)/dashboard/reviews/actions";
 
-const STATUS_CONFIG: Record<
-    ReviewStatus,
-    { label: string; variant: "default" | "secondary" | "destructive" }
-> = {
-    PENDING: { label: "En attente", variant: "secondary" },
-    APPROVED: { label: "Approuvé", variant: "default" },
-    REJECTED: { label: "Rejeté", variant: "destructive" },
-};
+const STATUS_CONFIG: Record<ReviewStatus, { label: string; tone: StatusTone }> =
+    {
+        PENDING: { label: "En attente", tone: "warning" },
+        APPROVED: { label: "Approuvé", tone: "success" },
+        REJECTED: { label: "Rejeté", tone: "danger" },
+    };
 
 export function ReviewsTable({ reviews }: { reviews: ReviewRow[] }) {
     const [pending, startTransition] = useTransition();
@@ -88,9 +95,11 @@ export function ReviewsTable({ reviews }: { reviews: ReviewRow[] }) {
 
     if (reviews.length === 0) {
         return (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-                Aucun avis ne correspond à ces critères.
-            </p>
+            <EmptyState
+                icon={IconStarOff}
+                title="Aucun avis"
+                description="Aucun avis ne correspond à ces critères. Changez de filtre pour voir les autres statuts."
+            />
         );
     }
 
@@ -155,9 +164,9 @@ export function ReviewsTable({ reviews }: { reviews: ReviewRow[] }) {
                                 </TableCell>
 
                                 <TableCell className="align-top">
-                                    <Badge variant={cfg.variant}>
+                                    <StatusBadge tone={cfg.tone}>
                                         {cfg.label}
-                                    </Badge>
+                                    </StatusBadge>
                                 </TableCell>
 
                                 <TableCell className="whitespace-nowrap align-top text-xs text-muted-foreground">
@@ -169,45 +178,59 @@ export function ReviewsTable({ reviews }: { reviews: ReviewRow[] }) {
                                 </TableCell>
 
                                 <TableCell className="align-top">
-                                    <div className="flex items-center justify-end gap-1">
-                                        {review.status !== "APPROVED" && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-green-600 hover:bg-green-500/10 hover:text-green-600 dark:text-green-400"
-                                                disabled={pending}
-                                                onClick={() =>
-                                                    moderate(review, "APPROVED")
-                                                }
-                                                aria-label="Approuver"
-                                            >
-                                                <IconCheck size={15} />
-                                            </Button>
-                                        )}
-                                        {review.status !== "REJECTED" && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8"
-                                                disabled={pending}
-                                                onClick={() =>
-                                                    moderate(review, "REJECTED")
-                                                }
-                                                aria-label="Rejeter"
-                                            >
-                                                <IconX size={15} />
-                                            </Button>
-                                        )}
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    <div className="flex justify-end">
+                                        <RowActions
+                                            label={`l'avis de ${review.authorName}`}
                                             disabled={pending}
-                                            onClick={() => setDeleting(review)}
-                                            aria-label="Supprimer"
                                         >
-                                            <IconTrash size={15} />
-                                        </Button>
+                                            {review.status !== "APPROVED" && (
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        moderate(
+                                                            review,
+                                                            "APPROVED",
+                                                        )
+                                                    }
+                                                >
+                                                    <IconCheck
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Approuver
+                                                </DropdownMenuItem>
+                                            )}
+                                            {review.status !== "REJECTED" && (
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        moderate(
+                                                            review,
+                                                            "REJECTED",
+                                                        )
+                                                    }
+                                                >
+                                                    <IconX
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Rejeter
+                                                </DropdownMenuItem>
+                                            )}
+
+                                            <DropdownMenuSeparator />
+
+                                            <DropdownMenuItem
+                                                onSelect={() =>
+                                                    setDeleting(review)
+                                                }
+                                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                            >
+                                                <IconTrash
+                                                    size={14}
+                                                    className="mr-2"
+                                                />
+                                                Supprimer
+                                            </DropdownMenuItem>
+                                        </RowActions>
                                     </div>
                                 </TableCell>
                             </TableRow>

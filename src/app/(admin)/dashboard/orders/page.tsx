@@ -4,6 +4,8 @@ import { getOrders } from "./actions";
 import { PAYMENT_VALUES, SHIPPING_VALUES } from "@/lib/order-status";
 import { OrdersTable } from "@/components/admin/orders/orders-table";
 import { OrdersFilters } from "@/components/admin/orders/orders-filters";
+import { PageHeader } from "@/components/admin/ui/page-header";
+import { TableCard } from "@/components/admin/ui/table-card";
 
 export const metadata: Metadata = { title: "Commandes" };
 
@@ -35,18 +37,16 @@ export default async function OrdersPage({ searchParams }: PageProps) {
 
     return (
         <section className="space-y-6">
-            <header>
-                <h1 className="text-2xl font-semibold">Commandes</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                    {orders.length} commande{orders.length !== 1 ? "s" : ""}
-                </p>
-            </header>
+            <PageHeader
+                title="Commandes"
+                description={`${orders.length} commande${orders.length !== 1 ? "s" : ""}`}
+            />
 
             <OrdersFilters />
 
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <TableCard>
                 <OrdersTable orders={orders} />
-            </div>
+            </TableCard>
         </section>
     );
 }

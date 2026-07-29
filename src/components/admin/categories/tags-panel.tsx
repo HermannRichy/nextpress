@@ -4,7 +4,19 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IconPlus, IconEdit, IconTrash, IconLoader2 } from "@tabler/icons-react";
+import {
+    IconPlus,
+    IconEdit,
+    IconTrash,
+    IconLoader2,
+    IconTagOff,
+} from "@tabler/icons-react";
+import {
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { RowActions } from "@/components/admin/ui/row-actions";
+import { EmptyState } from "@/components/admin/ui/empty-state";
 import {
     Table,
     TableBody,
@@ -140,9 +152,16 @@ export function TagsPanel({
 
             <div className="rounded-xl border border-border bg-card overflow-hidden">
                 {tags.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-12 text-center">
-                        Aucun tag pour le moment.
-                    </p>
+                    <EmptyState
+                        icon={IconTagOff}
+                        title="Aucun tag"
+                        description="Les tags affinent le classement de vos contenus."
+                        action={
+                            <Button size="sm" onClick={openCreate}>
+                                Nouveau tag
+                            </Button>
+                        }
+                    />
                 ) : (
                     <Table>
                         <TableHeader>
@@ -170,25 +189,36 @@ export function TagsPanel({
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center justify-end gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8"
-                                                onClick={() => openEdit(tag)}
-                                                aria-label={`Modifier ${tag.name}`}
+                                        <div className="flex justify-end">
+                                            <RowActions
+                                                label={tag.name}
+                                                disabled={pending}
                                             >
-                                                <IconEdit size={15} />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                onClick={() => setDeleting(tag)}
-                                                aria-label={`Supprimer ${tag.name}`}
-                                            >
-                                                <IconTrash size={15} />
-                                            </Button>
+                                                <DropdownMenuItem
+                                                    onSelect={() => openEdit(tag)}
+                                                >
+                                                    <IconEdit
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Modifier
+                                                </DropdownMenuItem>
+
+                                                <DropdownMenuSeparator />
+
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        setDeleting(tag)
+                                                    }
+                                                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                                >
+                                                    <IconTrash
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Supprimer
+                                                </DropdownMenuItem>
+                                            </RowActions>
                                         </div>
                                     </TableCell>
                                 </TableRow>

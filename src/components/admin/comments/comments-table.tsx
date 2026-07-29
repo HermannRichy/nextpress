@@ -10,6 +10,7 @@ import {
     IconExternalLink,
     IconCornerDownRight,
     IconUserOff,
+    IconMessageOff,
 } from "@tabler/icons-react";
 import type { CommentStatus } from "@prisma/client";
 import {
@@ -30,8 +31,16 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { RowActions } from "@/components/admin/ui/row-actions";
+import { EmptyState } from "@/components/admin/ui/empty-state";
+import {
+    StatusBadge,
+    type StatusTone,
+} from "@/components/admin/ui/status-badge";
 import { toast } from "sonner";
 import {
     setCommentStatus,
@@ -41,11 +50,11 @@ import {
 
 const STATUS_CONFIG: Record<
     CommentStatus,
-    { label: string; variant: "default" | "secondary" | "destructive" }
+    { label: string; tone: StatusTone }
 > = {
-    PENDING: { label: "En attente", variant: "secondary" },
-    APPROVED: { label: "Approuvé", variant: "default" },
-    REJECTED: { label: "Rejeté", variant: "destructive" },
+    PENDING: { label: "En attente", tone: "warning" },
+    APPROVED: { label: "Approuvé", tone: "success" },
+    REJECTED: { label: "Rejeté", tone: "danger" },
 };
 
 export function CommentsTable({ comments }: { comments: CommentRow[] }) {
@@ -91,9 +100,11 @@ export function CommentsTable({ comments }: { comments: CommentRow[] }) {
 
     if (comments.length === 0) {
         return (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-                Aucun commentaire ne correspond à ces critères.
-            </p>
+            <EmptyState
+                icon={IconMessageOff}
+                title="Aucun commentaire"
+                description="Aucun commentaire ne correspond à ces critères. Changez de filtre pour voir les autres statuts."
+            />
         );
     }
 
@@ -165,9 +176,9 @@ export function CommentsTable({ comments }: { comments: CommentRow[] }) {
                                 </TableCell>
 
                                 <TableCell className="align-top">
-                                    <Badge variant={cfg.variant}>
+                                    <StatusBadge tone={cfg.tone}>
                                         {cfg.label}
-                                    </Badge>
+                                    </StatusBadge>
                                 </TableCell>
 
                                 <TableCell className="whitespace-nowrap align-top text-xs text-muted-foreground">
@@ -179,45 +190,59 @@ export function CommentsTable({ comments }: { comments: CommentRow[] }) {
                                 </TableCell>
 
                                 <TableCell className="align-top">
-                                    <div className="flex items-center justify-end gap-1">
-                                        {comment.status !== "APPROVED" && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-green-600 hover:bg-green-500/10 hover:text-green-600 dark:text-green-400"
-                                                disabled={pending}
-                                                onClick={() =>
-                                                    moderate(comment, "APPROVED")
-                                                }
-                                                aria-label="Approuver"
-                                            >
-                                                <IconCheck size={15} />
-                                            </Button>
-                                        )}
-                                        {comment.status !== "REJECTED" && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8"
-                                                disabled={pending}
-                                                onClick={() =>
-                                                    moderate(comment, "REJECTED")
-                                                }
-                                                aria-label="Rejeter"
-                                            >
-                                                <IconX size={15} />
-                                            </Button>
-                                        )}
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    <div className="flex justify-end">
+                                        <RowActions
+                                            label={`le commentaire de ${comment.authorName}`}
                                             disabled={pending}
-                                            onClick={() => setDeleting(comment)}
-                                            aria-label="Supprimer"
                                         >
-                                            <IconTrash size={15} />
-                                        </Button>
+                                            {comment.status !== "APPROVED" && (
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        moderate(
+                                                            comment,
+                                                            "APPROVED",
+                                                        )
+                                                    }
+                                                >
+                                                    <IconCheck
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Approuver
+                                                </DropdownMenuItem>
+                                            )}
+                                            {comment.status !== "REJECTED" && (
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        moderate(
+                                                            comment,
+                                                            "REJECTED",
+                                                        )
+                                                    }
+                                                >
+                                                    <IconX
+                                                        size={14}
+                                                        className="mr-2"
+                                                    />
+                                                    Rejeter
+                                                </DropdownMenuItem>
+                                            )}
+
+                                            <DropdownMenuSeparator />
+
+                                            <DropdownMenuItem
+                                                onSelect={() =>
+                                                    setDeleting(comment)
+                                                }
+                                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                            >
+                                                <IconTrash
+                                                    size={14}
+                                                    className="mr-2"
+                                                />
+                                                Supprimer
+                                            </DropdownMenuItem>
+                                        </RowActions>
                                     </div>
                                 </TableCell>
                             </TableRow>

@@ -8,6 +8,8 @@ import { getSiteSettings } from "../settings/actions";
 import { getProducts } from "./actions";
 import { ProductsTable } from "@/components/admin/products/products-table";
 import { ProductsFilters } from "@/components/admin/products/products-filters";
+import { PageHeader } from "@/components/admin/ui/page-header";
+import { TableCard } from "@/components/admin/ui/table-card";
 
 export const metadata: Metadata = { title: "Produits" };
 
@@ -48,30 +50,27 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
     return (
         <section className="space-y-6">
-            <header className="flex items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-semibold">Produits</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {products.length} produit
-                        {products.length !== 1 ? "s" : ""}
-                    </p>
-                </div>
-                <Button asChild>
-                    <Link href="/dashboard/products/new">
-                        <IconPlus size={16} className="mr-2" />
-                        Nouveau produit
-                    </Link>
-                </Button>
-            </header>
+            <PageHeader
+                title="Produits"
+                description={`${products.length} produit${products.length !== 1 ? "s" : ""}`}
+                actions={
+                    <Button asChild>
+                        <Link href="/dashboard/products/new">
+                            <IconPlus size={16} className="mr-2" />
+                            Nouveau produit
+                        </Link>
+                    </Button>
+                }
+            />
 
             <ProductsFilters categories={categories} />
 
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <TableCard>
                 <ProductsTable
                     products={products}
                     currency={settings.currency}
                 />
-            </div>
+            </TableCard>
         </section>
     );
 }

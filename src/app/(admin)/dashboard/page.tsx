@@ -12,6 +12,7 @@ import { KpiCard } from "@/components/admin/dashboard/kpi-card";
 import { RevenueChart } from "@/components/admin/dashboard/revenue-chart";
 import { RecentOrders } from "@/components/admin/dashboard/recent-orders";
 import { TopProducts } from "@/components/admin/dashboard/top-products";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -150,12 +151,10 @@ export default async function DashboardPage() {
 
     return (
         <section className="space-y-6">
-            <header>
-                <h1 className="text-2xl font-semibold">Tableau de bord</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                    Vue d&apos;ensemble de votre activité aujourd&apos;hui
-                </p>
-            </header>
+            <PageHeader
+                title="Tableau de bord"
+                description="Vue d'ensemble de votre activité aujourd'hui"
+            />
 
             {/* KPI Cards */}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

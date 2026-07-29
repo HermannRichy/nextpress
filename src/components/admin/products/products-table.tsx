@@ -3,12 +3,12 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
-    IconDotsVertical,
     IconEdit,
     IconEye,
     IconTrash,
     IconLoader2,
     IconPhoto,
+    IconPackageOff,
 } from "@tabler/icons-react";
 import type { ProductStatus } from "@prisma/client";
 import {
@@ -22,12 +22,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RowActions } from "@/components/admin/ui/row-actions";
+import { EmptyState } from "@/components/admin/ui/empty-state";
+import {
+    StatusBadge,
+    type StatusTone,
+} from "@/components/admin/ui/status-badge";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -66,26 +69,15 @@ const NEXT_STATUS: Record<ProductStatus, { status: ProductStatus; label: string 
 };
 
 /** Badges de stock de la spec 3.4 : rupture, stock faible, en stock. */
-function stockBadge(stock: number, threshold: number) {
-    if (stock <= 0) {
-        return {
-            label: "Rupture",
-            className:
-                "bg-destructive/10 text-destructive border-destructive/20",
-        };
-    }
+function stockBadge(
+    stock: number,
+    threshold: number,
+): { label: string; tone: StatusTone } {
+    if (stock <= 0) return { label: "Rupture", tone: "danger" };
     if (stock <= threshold) {
-        return {
-            label: `Stock faible (${stock})`,
-            className:
-                "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
-        };
+        return { label: `Stock faible (${stock})`, tone: "warning" };
     }
-    return {
-        label: `En stock (${stock})`,
-        className:
-            "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
-    };
+    return { label: `En stock (${stock})`, tone: "success" };
 }
 
 interface ProductsTableProps {
@@ -132,15 +124,18 @@ export function ProductsTable({ products, currency }: ProductsTableProps) {
 
     if (products.length === 0) {
         return (
-            <p className="text-sm text-muted-foreground py-12 text-center">
-                Aucun produit.{" "}
-                <Link
-                    href="/dashboard/products/new"
-                    className="text-primary hover:underline"
-                >
-                    Créer le premier.
-                </Link>
-            </p>
+            <EmptyState
+                icon={IconPackageOff}
+                title="Aucun produit"
+                description="Aucun produit ne correspond à ces critères. Ajustez les filtres ou créez votre premier produit."
+                action={
+                    <Button size="sm" asChild>
+                        <Link href="/dashboard/products/new">
+                            Nouveau produit
+                        </Link>
+                    </Button>
+                }
+            />
         );
     }
 
@@ -216,12 +211,9 @@ export function ProductsTable({ products, currency }: ProductsTableProps) {
                                 </TableCell>
 
                                 <TableCell>
-                                    <Badge
-                                        variant="outline"
-                                        className={stock.className}
-                                    >
+                                    <StatusBadge tone={stock.tone}>
                                         {stock.label}
-                                    </Badge>
+                                    </StatusBadge>
                                 </TableCell>
 
                                 <TableCell>
@@ -276,21 +268,7 @@ export function ProductsTable({ products, currency }: ProductsTableProps) {
                                 </TableCell>
 
                                 <TableCell>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8"
-                                                aria-label={`Actions pour ${product.name}`}
-                                            >
-                                                <IconDotsVertical size={15} />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent
-                                            align="end"
-                                            className="w-52"
-                                        >
+                                    <RowActions label={product.name}>
                                             <DropdownMenuItem asChild>
                                                 <Link
                                                     href={`/dashboard/products/${product.id}`}
@@ -346,8 +324,7 @@ export function ProductsTable({ products, currency }: ProductsTableProps) {
                                                 />
                                                 Supprimer
                                             </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    </RowActions>
                                 </TableCell>
                             </TableRow>
                         );
