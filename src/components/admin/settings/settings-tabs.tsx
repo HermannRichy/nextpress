@@ -404,11 +404,16 @@ const integrationsSchema = z.object({
     feexpayPublicKey: z.string().optional(),
     feexpaySecretKey: z.string().optional(),
     deeplApiKey: z.string().optional(),
+    codEnabled: z.boolean(),
+    bankTransferEnabled: z.boolean(),
+    bankTransferDetails: z.string().optional(),
+    mobileMoneyEnabled: z.boolean(),
+    mobileMoneyDetails: z.string().optional(),
 });
 type IntegrationsValues = z.infer<typeof integrationsSchema>;
 
 function TabIntegrations({ s }: { s: SiteSettings }) {
-    const { register, handleSubmit, formState: { isSubmitting } } = useForm<IntegrationsValues>({
+    const { register, handleSubmit, setValue, watch, formState: { isSubmitting } } = useForm<IntegrationsValues>({
         resolver: zodResolver(integrationsSchema),
         defaultValues: {
             cloudinaryCloudName: s.cloudinaryCloudName ?? "",
@@ -420,8 +425,17 @@ function TabIntegrations({ s }: { s: SiteSettings }) {
             feexpayPublicKey: s.feexpayPublicKey ?? "",
             feexpaySecretKey: s.feexpaySecretKey ?? "",
             deeplApiKey: s.deeplApiKey ?? "",
+            codEnabled: s.codEnabled,
+            bankTransferEnabled: s.bankTransferEnabled,
+            bankTransferDetails: s.bankTransferDetails ?? "",
+            mobileMoneyEnabled: s.mobileMoneyEnabled,
+            mobileMoneyDetails: s.mobileMoneyDetails ?? "",
         },
     });
+
+    const codEnabled = watch("codEnabled");
+    const bankTransferEnabled = watch("bankTransferEnabled");
+    const mobileMoneyEnabled = watch("mobileMoneyEnabled");
 
     const onSubmit = async (data: IntegrationsValues) => {
         try {
@@ -435,6 +449,11 @@ function TabIntegrations({ s }: { s: SiteSettings }) {
                 feexpayPublicKey: data.feexpayPublicKey || null,
                 feexpaySecretKey: data.feexpaySecretKey || null,
                 deeplApiKey: data.deeplApiKey || null,
+                codEnabled: data.codEnabled,
+                bankTransferEnabled: data.bankTransferEnabled,
+                bankTransferDetails: data.bankTransferDetails || null,
+                mobileMoneyEnabled: data.mobileMoneyEnabled,
+                mobileMoneyDetails: data.mobileMoneyDetails || null,
             });
             toast.success("Intégrations mises à jour");
         } catch {
@@ -487,6 +506,78 @@ function TabIntegrations({ s }: { s: SiteSettings }) {
                     <FieldRow id="feexpaySecretKey" label="Clé secrète">
                         <SecretInput id="feexpaySecretKey" {...register("feexpaySecretKey")} />
                     </FieldRow>
+                </div>
+            </section>
+
+            <Separator />
+
+            <section>
+                <h2 className="text-sm font-semibold mb-1">Paiements manuels</h2>
+                <p className="text-xs text-muted-foreground mb-3">
+                    Toujours proposés au client, y compris lorsque Stripe ou
+                    FeexPay sont configurés.
+                </p>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="codEnabled" className="font-normal">
+                            Paiement à la livraison
+                        </Label>
+                        <Switch
+                            id="codEnabled"
+                            checked={codEnabled}
+                            onCheckedChange={(v) => setValue("codEnabled", v)}
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="bankTransferEnabled" className="font-normal">
+                            Virement bancaire
+                        </Label>
+                        <Switch
+                            id="bankTransferEnabled"
+                            checked={bankTransferEnabled}
+                            onCheckedChange={(v) => setValue("bankTransferEnabled", v)}
+                        />
+                    </div>
+                    {bankTransferEnabled && (
+                        <FieldRow
+                            id="bankTransferDetails"
+                            label="Coordonnées bancaires"
+                            hint="Affichées au client après commande"
+                        >
+                            <Textarea
+                                id="bankTransferDetails"
+                                rows={3}
+                                className="resize-none"
+                                {...register("bankTransferDetails")}
+                            />
+                        </FieldRow>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="mobileMoneyEnabled" className="font-normal">
+                            Transfert Mobile Money
+                        </Label>
+                        <Switch
+                            id="mobileMoneyEnabled"
+                            checked={mobileMoneyEnabled}
+                            onCheckedChange={(v) => setValue("mobileMoneyEnabled", v)}
+                        />
+                    </div>
+                    {mobileMoneyEnabled && (
+                        <FieldRow
+                            id="mobileMoneyDetails"
+                            label="Numéro et instructions"
+                            hint="Affichés au client après commande"
+                        >
+                            <Textarea
+                                id="mobileMoneyDetails"
+                                rows={3}
+                                className="resize-none"
+                                {...register("mobileMoneyDetails")}
+                            />
+                        </FieldRow>
+                    )}
                 </div>
             </section>
 

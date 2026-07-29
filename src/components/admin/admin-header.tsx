@@ -23,6 +23,7 @@ const PAGE_TITLES: Record<string, string> = {
     "/dashboard/products": "Produits",
     "/dashboard/orders": "Commandes",
     "/dashboard/coupons": "Coupons",
+    "/dashboard/shipping": "Livraison",
     "/dashboard/categories": "Catégories",
     "/dashboard/comments": "Commentaires",
     "/dashboard/reviews": "Avis",

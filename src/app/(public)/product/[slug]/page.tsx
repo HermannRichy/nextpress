@@ -9,6 +9,7 @@ import { getRatingMap } from "@/lib/ratings";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProductGallery } from "@/components/public/product-gallery";
+import { AddToCart } from "@/components/public/add-to-cart";
 import { RatingStars } from "@/components/public/rating-stars";
 import { ReviewsSection } from "@/components/public/reviews-section";
 import {
@@ -128,14 +129,6 @@ export default async function ProductPage({ params }: PageProps) {
         categories: p.categories.map((c) => c.category),
         rating: relatedRatings.get(p.id) ?? null,
     }));
-
-    // Regroupe les variantes par type : « Taille : S, M, L » plutôt qu'une liste plate.
-    const variantGroups = product.variants.reduce<
-        Record<string, typeof product.variants>
-    >((acc, variant) => {
-        (acc[variant.name] ??= []).push(variant);
-        return acc;
-    }, {});
 
     const stock =
         product.stock <= 0
@@ -259,35 +252,14 @@ export default async function ProductPage({ params }: PageProps) {
 
                     <Separator className="my-6" />
 
-                    {/* Variantes informatives : la sélection viendra avec le panier. */}
-                    {Object.keys(variantGroups).length > 0 && (
-                        <section className="space-y-4">
-                            {Object.entries(variantGroups).map(
-                                ([name, variants]) => (
-                                    <div key={name} className="space-y-2">
-                                        <h2 className="text-sm font-medium">
-                                            {name}
-                                        </h2>
-                                        <ul className="flex flex-wrap gap-2">
-                                            {variants.map((variant) => (
-                                                <li
-                                                    key={variant.id}
-                                                    className={
-                                                        variant.stock <= 0
-                                                            ? "rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground line-through"
-                                                            : "rounded-lg border border-border px-3 py-1.5 text-sm"
-                                                    }
-                                                >
-                                                    {variant.value}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ),
-                            )}
-                            <Separator className="my-6" />
-                        </section>
-                    )}
+                    {/* Sélection de variante et ajout au panier. */}
+                    <AddToCart
+                        productId={product.id}
+                        productStock={product.stock}
+                        variants={product.variants}
+                    />
+
+                    <Separator className="my-6" />
 
                     {product.description && (
                         <div

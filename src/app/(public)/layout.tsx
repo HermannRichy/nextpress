@@ -1,8 +1,13 @@
 import Link from "next/link";
+import { IconShoppingCart } from "@tabler/icons-react";
 import { getSiteSettings } from "@/app/(admin)/dashboard/settings/actions";
+import { getCartCount } from "@/lib/cart";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-    const settings = await getSiteSettings();
+    const [settings, cartCount] = await Promise.all([
+        getSiteSettings(),
+        getCartCount(),
+    ]);
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -29,6 +34,26 @@ export default async function PublicLayout({ children }: { children: React.React
                             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                         >
                             Blog
+                        </Link>
+
+                        <Link
+                            href="/cart"
+                            className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            aria-label={
+                                cartCount > 0
+                                    ? `Panier, ${cartCount} article${cartCount > 1 ? "s" : ""}`
+                                    : "Panier, vide"
+                            }
+                        >
+                            <IconShoppingCart size={19} />
+                            {cartCount > 0 && (
+                                <span
+                                    className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground"
+                                    aria-hidden
+                                >
+                                    {cartCount > 99 ? "99+" : cartCount}
+                                </span>
+                            )}
                         </Link>
                     </nav>
                 </div>

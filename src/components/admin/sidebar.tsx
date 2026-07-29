@@ -18,6 +18,7 @@ import {
     IconShoppingCart,
     IconStar,
     IconTag,
+    IconTruck,
     IconUser,
     IconUsers,
     IconWebhook,
@@ -93,6 +94,11 @@ const NAV_GROUPS: NavGroup[] = [
                 icon: IconShoppingCart,
             },
             { label: "Coupons", href: "/dashboard/coupons", icon: IconTag },
+            {
+                label: "Livraison",
+                href: "/dashboard/shipping",
+                icon: IconTruck,
+            },
             {
                 label: "Catégories",
                 href: "/dashboard/categories",

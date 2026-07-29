@@ -52,6 +52,11 @@ enum ShippingStatus {
   CANCELLED
 }
 
+enum ShippingMethod {
+  DELIVERY
+  PICKUP
+}
+
 enum ReviewStatus {
   PENDING
   APPROVED
@@ -189,6 +194,12 @@ model SiteSettings {
   stripeWebhookSecret String?
   feexpayPublicKey    String?
   feexpaySecretKey    String?
+  /// Moyens de paiement manuels, toujours proposés en plus des prestataires.
+  codEnabled          Boolean  @default(true)
+  bankTransferEnabled Boolean  @default(false)
+  bankTransferDetails String?
+  mobileMoneyEnabled  Boolean  @default(false)
+  mobileMoneyDetails  String?
   robotsTxt           String?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -514,15 +525,50 @@ model Order {
   paymentMethod   String?
   paymentIntentId String?
   shippingStatus  ShippingStatus @default(PENDING)
+  shippingMethod  ShippingMethod @default(DELIVERY)
+  shippingZoneId  String?
+  pickupPointId   String?
   trackingNumber  String?
   notes           String?
   couponId        String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
-  user   User?      @relation(fields: [userId], references: [id])
-  coupon Coupon?    @relation(fields: [couponId], references: [id])
-  items  OrderItem[]
+  user         User?         @relation(fields: [userId], references: [id])
+  coupon       Coupon?       @relation(fields: [couponId], references: [id])
+  shippingZone ShippingZone? @relation(fields: [shippingZoneId], references: [id])
+  pickupPoint  PickupPoint?  @relation(fields: [pickupPointId], references: [id])
+  items        OrderItem[]
+}
+
+// ─── Livraison ────────────────────────────────────────────────────────────────
+
+model ShippingZone {
+  id            String   @id @default(cuid())
+  name          String
+  price         Decimal  @db.Decimal(10, 2)
+  /// Au-delà de ce montant de commande, la livraison est offerte.
+  freeAbove     Decimal? @db.Decimal(10, 2)
+  estimatedDays String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orders Order[]
+}
+
+model PickupPoint {
+  id        String   @id @default(cuid())
+  name      String
+  /// Sert aussi à construire l'iframe Google Maps : aucune URL n'est stockée.
+  address   String
+  details   String?
+  hours     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
 }
 
 model OrderItem {
