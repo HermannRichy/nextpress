@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { IconChevronLeft } from "@tabler/icons-react";
+import { IconChevronRight } from "@tabler/icons-react";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/app/(admin)/dashboard/settings/actions";
 import { PostCard, type PostCardData } from "@/components/public/post-card";
@@ -19,7 +19,9 @@ async function getPost(slug: string) {
         include: {
             author: { select: { name: true, image: true } },
             categories: {
-                include: { category: { select: { id: true, name: true, slug: true } } },
+                include: {
+                    category: { select: { id: true, name: true, slug: true } },
+                },
             },
             tags: {
                 include: { tag: { select: { id: true, name: true } } },
@@ -28,9 +30,14 @@ async function getPost(slug: string) {
     });
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+    params,
+}: PageProps): Promise<Metadata> {
     const { slug } = await params;
-    const [post, settings] = await Promise.all([getPost(slug), getSiteSettings()]);
+    const [post, settings] = await Promise.all([
+        getPost(slug),
+        getSiteSettings(),
+    ]);
     if (!post) return {};
 
     return {
@@ -49,19 +56,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
 }
 
+/** Estimation de lecture : 200 mots/minute sur le contenu dépouillé du HTML. */
+function readingTime(html: string | null): number {
+    if (!html) return 1;
+    const words = html
+        .replace(/<[^>]*>/g, " ")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+    return Math.max(1, Math.round(words / 200));
+}
+
 export default async function PostPage({ params }: PageProps) {
     const { slug } = await params;
     const post = await getPost(slug);
     if (!post) notFound();
 
-    const firstCategoryId = post.categories[0]?.category.id;
+    const firstCategory = post.categories[0]?.category;
 
     const related = await prisma.post.findMany({
         where: {
             status: "PUBLISHED",
             id: { not: post.id },
-            ...(firstCategoryId && {
-                categories: { some: { categoryId: firstCategoryId } },
+            ...(firstCategory && {
+                categories: { some: { categoryId: firstCategory.id } },
             }),
         },
         include: {
@@ -94,114 +112,143 @@ export default async function PostPage({ params }: PageProps) {
           }).format(post.publishedAt)
         : null;
 
+    const minutes = readingTime(post.content);
+
     return (
-        <div className="max-w-3xl mx-auto px-4 py-10">
-            {/* Breadcrumb */}
-            <nav
-                className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap"
-                aria-label="Fil d'Ariane"
-            >
-                <Link
-                    href="/blog"
-                    className="hover:text-foreground transition-colors flex items-center gap-1"
-                >
-                    <IconChevronLeft size={14} aria-hidden />
-                    Blog
-                </Link>
-                {post.categories[0] && (
-                    <>
-                        <span aria-hidden>·</span>
+        <article>
+            {/* En-tête */}
+            <header className="border-b border-border bg-linear-to-b from-muted/50 to-background">
+                <div className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
+                    <nav
+                        aria-label="Fil d'Ariane"
+                        className="mb-6 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground"
+                    >
                         <Link
-                            href={`/blog?category=${post.categories[0].category.slug}`}
-                            className="hover:text-foreground transition-colors"
+                            href="/blog"
+                            className="transition-colors hover:text-foreground"
                         >
-                            {post.categories[0].category.name}
+                            Blog
                         </Link>
-                    </>
-                )}
-            </nav>
+                        {firstCategory && (
+                            <>
+                                <IconChevronRight size={14} aria-hidden />
+                                <Link
+                                    href={`/blog?category=${firstCategory.slug}`}
+                                    className="transition-colors hover:text-foreground"
+                                >
+                                    {firstCategory.name}
+                                </Link>
+                            </>
+                        )}
+                    </nav>
 
-            <article>
-                {/* Article header */}
-                <header className="space-y-4 mb-8">
-                    <div className="flex flex-wrap gap-2">
-                        {post.categories.map(({ category }) => (
-                            <Link key={category.id} href={`/blog?category=${category.slug}`}>
-                                <Badge variant="secondary">{category.name}</Badge>
-                            </Link>
-                        ))}
-                    </div>
+                    {post.categories.length > 0 && (
+                        <div className="mb-4 flex flex-wrap gap-2">
+                            {post.categories.map(({ category }) => (
+                                <Link
+                                    key={category.id}
+                                    href={`/blog?category=${category.slug}`}
+                                    className="text-[11px] font-medium uppercase tracking-wider text-primary transition-opacity hover:opacity-70"
+                                >
+                                    {category.name}
+                                </Link>
+                            ))}
+                        </div>
+                    )}
 
-                    <h1 className="text-3xl font-bold leading-tight">{post.title}</h1>
+                    <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                        {post.title}
+                    </h1>
 
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    {post.excerpt && (
+                        <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+                            {post.excerpt}
+                        </p>
+                    )}
+
+                    <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                         {post.author.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={post.author.image}
-                                alt={post.author.name}
-                                className="w-7 h-7 rounded-full object-cover"
+                                alt=""
+                                className="h-8 w-8 rounded-full object-cover"
                             />
                         ) : (
-                            <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                            <span
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-semibold"
+                                aria-hidden
+                            >
                                 {post.author.name.charAt(0).toUpperCase()}
-                            </div>
+                            </span>
                         )}
-                        <span>{post.author.name}</span>
+                        <span className="font-medium text-foreground">
+                            {post.author.name}
+                        </span>
                         {publishedDate && (
                             <>
                                 <span aria-hidden>·</span>
-                                <time dateTime={post.publishedAt?.toISOString()}>
+                                <time
+                                    dateTime={post.publishedAt?.toISOString()}
+                                >
                                     {publishedDate}
                                 </time>
                             </>
                         )}
+                        <span aria-hidden>·</span>
+                        <span>{minutes} min de lecture</span>
                     </div>
-                </header>
+                </div>
+            </header>
 
-                {/* Featured image */}
+            <div className="mx-auto max-w-3xl px-4 py-10">
                 {post.featuredImage && (
-                    <figure className="mb-8 -mx-4 sm:mx-0 sm:rounded-xl overflow-hidden">
+                    <figure className="-mt-4 mb-10 overflow-hidden rounded-xl border border-border">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src={post.featuredImage}
                             alt={post.title}
-                            className="w-full aspect-video object-cover"
+                            className="aspect-video w-full object-cover"
                         />
                     </figure>
                 )}
 
-                {/* Rich text content */}
                 <div
-                    className="prose prose-lg max-w-none dark:prose-invert"
+                    className="prose prose-lg max-w-none dark:prose-invert prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl"
                     dangerouslySetInnerHTML={{ __html: post.content ?? "" }}
                 />
 
-                {/* Tags */}
                 {post.tags.length > 0 && (
-                    <footer className="mt-8 pt-6 border-t border-border">
+                    <footer className="mt-10 border-t border-border pt-6">
                         <div className="flex flex-wrap gap-2">
                             {post.tags.map(({ tag }) => (
-                                <Badge key={tag.id} variant="outline">
+                                <Badge
+                                    key={tag.id}
+                                    variant="outline"
+                                    className="rounded-full font-normal"
+                                >
                                     {tag.name}
                                 </Badge>
                             ))}
                         </div>
                     </footer>
                 )}
-            </article>
+            </div>
 
-            {/* Related posts */}
             {relatedSerialized.length > 0 && (
-                <aside className="mt-16 pt-8 border-t border-border">
-                    <h2 className="text-lg font-semibold mb-6">Articles similaires</h2>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {relatedSerialized.map((p) => (
-                            <PostCard key={p.slug} post={p} />
-                        ))}
+                <aside className="border-t border-border bg-muted/30">
+                    <div className="mx-auto max-w-5xl px-4 py-12">
+                        <h2 className="mb-6 text-xl font-semibold tracking-tight">
+                            Articles similaires
+                        </h2>
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            {relatedSerialized.map((p) => (
+                                <PostCard key={p.slug} post={p} />
+                            ))}
+                        </div>
                     </div>
                 </aside>
             )}
-        </div>
+        </article>
     );
 }

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 
 export interface PostCardData {
     slug: string;
@@ -22,60 +21,69 @@ export function PostCard({ post }: { post: PostCardData }) {
         : null;
 
     return (
-        <article className="group flex flex-col rounded-xl border border-border bg-card overflow-hidden hover:shadow-md transition-shadow">
-            {/* Image */}
-            <Link href={`/blog/${post.slug}`} tabIndex={-1} aria-hidden>
-                <div className="aspect-video bg-muted overflow-hidden">
-                    {post.featuredImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                            src={post.featuredImage}
-                            alt={post.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                        />
-                    ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5" />
-                    )}
-                </div>
-            </Link>
+        <article className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 focus-within:-translate-y-1 focus-within:border-primary/30">
+            <div className="aspect-video overflow-hidden bg-muted">
+                {post.featuredImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={post.featuredImage}
+                        alt={post.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                    />
+                ) : (
+                    <div className="h-full w-full bg-linear-to-br from-primary/10 via-primary/5 to-transparent" />
+                )}
+            </div>
 
-            <div className="flex flex-col flex-1 p-4 gap-2.5">
+            <div className="flex flex-1 flex-col gap-2.5 p-5">
                 {mainCategory && (
-                    <Badge variant="secondary" className="w-fit text-xs">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-primary">
                         {mainCategory.name}
-                    </Badge>
+                    </p>
                 )}
 
-                <Link href={`/blog/${post.slug}`}>
-                    <h2 className="font-semibold text-base leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                <h2 className="text-base font-semibold leading-snug line-clamp-2">
+                    {/* Lien étendu à toute la carte : une seule cible cliquable
+                        et un seul arrêt au clavier. */}
+                    <Link
+                        href={`/blog/${post.slug}`}
+                        className="after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-primary focus-visible:after:ring-offset-2"
+                    >
                         {post.title}
-                    </h2>
-                </Link>
+                    </Link>
+                </h2>
 
                 {post.excerpt && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
+                    <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                         {post.excerpt}
                     </p>
                 )}
 
-                <footer className="flex items-center gap-2 pt-1 mt-auto">
+                <footer className="mt-auto flex items-center gap-2 border-t border-border pt-3">
                     {post.author.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                             src={post.author.image}
-                            alt={post.author.name}
-                            className="w-6 h-6 rounded-full object-cover"
+                            alt=""
+                            className="h-6 w-6 rounded-full object-cover"
                         />
                     ) : (
-                        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+                        <span
+                            className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground"
+                            aria-hidden
+                        >
                             {post.author.name.charAt(0).toUpperCase()}
-                        </div>
+                        </span>
                     )}
-                    <span className="text-xs text-muted-foreground">{post.author.name}</span>
+                    <span className="text-xs font-medium">
+                        {post.author.name}
+                    </span>
                     {date && (
                         <>
-                            <span className="text-xs text-muted-foreground">·</span>
+                            <span className="text-xs text-muted-foreground" aria-hidden>
+                                ·
+                            </span>
                             <time
                                 className="text-xs text-muted-foreground"
                                 dateTime={post.publishedAt ?? undefined}

@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import {
+    IconChevronLeft,
+    IconChevronRight,
+    IconArticleOff,
+} from "@tabler/icons-react";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/app/(admin)/dashboard/settings/actions";
 import { PostCard, type PostCardData } from "@/components/public/post-card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export const revalidate = 60;
@@ -29,7 +32,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
     const page = Math.max(1, parseInt(params.page ?? "1", 10));
     const categorySlug = params.category ?? "";
 
-    const [settings, categories, rawPosts] = await Promise.all([
+    const [settings, categories, rawPosts, total] = await Promise.all([
         getSiteSettings(),
         prisma.postCategory.findMany({
             select: { id: true, name: true, slug: true },
@@ -52,6 +55,14 @@ export default async function BlogPage({ searchParams }: PageProps) {
             skip: (page - 1) * PER_PAGE,
             take: PER_PAGE + 1,
         }),
+        prisma.post.count({
+            where: {
+                status: "PUBLISHED",
+                ...(categorySlug && {
+                    categories: { some: { category: { slug: categorySlug } } },
+                }),
+            },
+        }),
     ]);
 
     const hasNext = rawPosts.length > PER_PAGE;
@@ -70,6 +81,8 @@ export default async function BlogPage({ searchParams }: PageProps) {
         })),
     }));
 
+    const activeCategory = categories.find((c) => c.slug === categorySlug);
+
     function pageUrl(p: number, cat?: string) {
         const qs = new URLSearchParams();
         if (cat) qs.set("category", cat);
@@ -80,39 +93,67 @@ export default async function BlogPage({ searchParams }: PageProps) {
     return (
         <>
             {/* Hero */}
-            <section className="border-b border-border bg-muted/30 py-12 px-4">
-                <div className="max-w-5xl mx-auto">
-                    <h1 className="text-3xl font-bold">Blog</h1>
-                    {settings.description && (
-                        <p className="text-muted-foreground mt-2 max-w-xl">{settings.description}</p>
-                    )}
+            <section className="border-b border-border bg-linear-to-b from-muted/50 to-background">
+                <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
+                    <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                        {activeCategory ? activeCategory.name : "Blog"}
+                    </h1>
+                    <p className="mt-3 max-w-xl text-muted-foreground">
+                        {activeCategory
+                            ? `${total} article${total !== 1 ? "s" : ""} dans cette catégorie.`
+                            : (settings.description ??
+                              `${total} article${total !== 1 ? "s" : ""} à découvrir.`)}
+                    </p>
                 </div>
             </section>
 
-            <section className="max-w-5xl mx-auto px-4 py-10 space-y-8">
-                {/* Category filter */}
-                {categories.length > 0 && (
-                    <nav className="flex flex-wrap gap-2" aria-label="Filtrer par catégorie">
-                        <Link href="/blog">
-                            <Badge variant={!categorySlug ? "default" : "outline"}>Tous</Badge>
-                        </Link>
+            {/* Filtres, collants sous le header du layout public */}
+            {categories.length > 0 && (
+                <div className="sticky top-14 z-30 border-b border-border bg-background/85 backdrop-blur-sm">
+                    <nav
+                        aria-label="Filtrer par catégorie"
+                        className="mx-auto -mb-px flex max-w-5xl gap-1.5 overflow-x-auto px-4 py-3"
+                    >
+                        <FilterPill href="/blog" active={!categorySlug}>
+                            Tous
+                        </FilterPill>
                         {categories.map((cat) => (
-                            <Link key={cat.id} href={pageUrl(1, cat.slug)}>
-                                <Badge
-                                    variant={categorySlug === cat.slug ? "default" : "outline"}
-                                >
-                                    {cat.name}
-                                </Badge>
-                            </Link>
+                            <FilterPill
+                                key={cat.id}
+                                href={pageUrl(1, cat.slug)}
+                                active={categorySlug === cat.slug}
+                            >
+                                {cat.name}
+                            </FilterPill>
                         ))}
                     </nav>
-                )}
+                </div>
+            )}
 
-                {/* Grid */}
+            <section className="mx-auto max-w-5xl space-y-10 px-4 py-10">
                 {serialized.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-16">
-                        Aucun article{categorySlug ? " dans cette catégorie" : ""} pour l&apos;instant.
-                    </p>
+                    <div className="flex flex-col items-center gap-4 py-20 text-center">
+                        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                            <IconArticleOff
+                                size={24}
+                                className="text-muted-foreground"
+                            />
+                        </span>
+                        <div className="space-y-1">
+                            <p className="font-medium">
+                                Aucun article
+                                {categorySlug ? " dans cette catégorie" : ""}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Revenez bientôt, de nouveaux articles arrivent.
+                            </p>
+                        </div>
+                        {categorySlug && (
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href="/blog">Voir tous les articles</Link>
+                            </Button>
+                        )}
+                    </div>
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {serialized.map((post) => (
@@ -121,36 +162,73 @@ export default async function BlogPage({ searchParams }: PageProps) {
                     </div>
                 )}
 
-                {/* Pagination */}
                 {(hasPrev || hasNext) && (
                     <nav
-                        className="flex items-center justify-between pt-4"
                         aria-label="Pagination des articles"
+                        className="flex items-center justify-between border-t border-border pt-6"
                     >
                         {hasPrev ? (
-                            <Button variant="outline" asChild>
-                                <Link href={pageUrl(page - 1, categorySlug || undefined)}>
+                            <Button variant="outline" size="sm" asChild>
+                                <Link
+                                    href={pageUrl(
+                                        page - 1,
+                                        categorySlug || undefined,
+                                    )}
+                                >
                                     <IconChevronLeft size={16} className="mr-1" />
                                     Précédent
                                 </Link>
                             </Button>
                         ) : (
-                            <div />
+                            <span />
                         )}
-                        <span className="text-sm text-muted-foreground">Page {page}</span>
+
+                        <span className="text-sm text-muted-foreground">
+                            Page {page}
+                        </span>
+
                         {hasNext ? (
-                            <Button variant="outline" asChild>
-                                <Link href={pageUrl(page + 1, categorySlug || undefined)}>
+                            <Button variant="outline" size="sm" asChild>
+                                <Link
+                                    href={pageUrl(
+                                        page + 1,
+                                        categorySlug || undefined,
+                                    )}
+                                >
                                     Suivant
                                     <IconChevronRight size={16} className="ml-1" />
                                 </Link>
                             </Button>
                         ) : (
-                            <div />
+                            <span />
                         )}
                     </nav>
                 )}
             </section>
         </>
+    );
+}
+
+function FilterPill({
+    href,
+    active,
+    children,
+}: {
+    href: string;
+    active: boolean;
+    children: React.ReactNode;
+}) {
+    return (
+        <Link
+            href={href}
+            aria-current={active}
+            className={
+                active
+                    ? "whitespace-nowrap rounded-full bg-primary px-3.5 py-1.5 text-xs font-medium text-primary-foreground transition-colors"
+                    : "whitespace-nowrap rounded-full border border-border px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            }
+        >
+            {children}
+        </Link>
     );
 }
